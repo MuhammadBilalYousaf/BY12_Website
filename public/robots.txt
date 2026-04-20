@@ -1,0 +1,24 @@
+# BY12 Perfumes - https://by12.pk
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/*
+Disallow: /cart
+Disallow: /checkout
+Disallow: /wishlist
+Disallow: /profile
+Disallow: /orders
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /unsubscribe
+Disallow: /order-confirmation
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/*
+
+Sitemap: https://by12.pk/sitemap.xml
+Host: https://by12.pk
