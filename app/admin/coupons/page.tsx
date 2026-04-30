@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, Edit2, Trash2, Tag, ToggleLeft, ToggleRight, Calendar, Percent, DollarSign } from "lucide-react"
+import { Plus, Search, Edit2, Trash2, Tag, ToggleLeft, ToggleRight, Calendar, Percent, Banknote } from "lucide-react"
 import { useCoupons, Coupon } from "@/lib/hooks/use-coupons"
 
 export default function AdminCoupons() {
@@ -120,11 +120,11 @@ export default function AdminCoupons() {
           <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-600/20 rounded-lg">
-                <DollarSign className="text-blue-400" size={20} />
+                <Banknote className="text-blue-400" size={20} />
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{coupons.filter(c => c.discountType === "fixed").length}</p>
-                <p className="text-sm text-gray-400">Fixed Amount</p>
+                <p className="text-sm text-gray-400">Fixed Amount (PKR)</p>
               </div>
             </div>
           </div>
@@ -185,12 +185,12 @@ export default function AdminCoupons() {
                         </span>
                         {coupon.discountType === "percentage" && coupon.maxDiscount > 0 && (
                           <span className="block text-xs text-gray-400 mt-1">
-                            Max: Rs.{coupon.maxDiscount}
+                            Max: Rs. {coupon.maxDiscount}
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-gray-300">
-                        {coupon.minPurchase > 0 ? `Rs.${coupon.minPurchase}` : "None"}
+                        {coupon.minPurchase > 0 ? `Rs. ${coupon.minPurchase}` : "None"}
                       </td>
                       <td className="px-6 py-4 text-gray-300">
                         {coupon.usedCount} / {coupon.usageLimit > 0 ? coupon.usageLimit : "∞"}
@@ -453,7 +453,7 @@ function CouponModal({ isOpen, onClose, onSave, coupon, mode }: CouponModalProps
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="percentage">Percentage (%)</option>
-                <option value="fixed">Fixed Amount (Rs.)</option>
+                <option value="fixed">Fixed Amount (PKR)</option>
               </select>
             </div>
             <div>
@@ -476,7 +476,7 @@ function CouponModal({ isOpen, onClose, onSave, coupon, mode }: CouponModalProps
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Minimum Purchase (Rs.)
+                Minimum Purchase (PKR)
               </label>
               <input
                 type="number"
@@ -490,7 +490,7 @@ function CouponModal({ isOpen, onClose, onSave, coupon, mode }: CouponModalProps
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Max Discount (Rs.)
+                Max Discount (PKR)
               </label>
               <input
                 type="number"
@@ -556,9 +556,9 @@ function CouponModal({ isOpen, onClose, onSave, coupon, mode }: CouponModalProps
               {" - "}
               {formData.discountType === "percentage" 
                 ? `${formData.discountValue}% off`
-                : `Rs.${formData.discountValue} off`}
-              {formData.minPurchase > 0 && ` on orders above Rs.${formData.minPurchase}`}
-              {formData.discountType === "percentage" && formData.maxDiscount > 0 && ` (max Rs.${formData.maxDiscount})`}
+                : `Rs. ${formData.discountValue} off`}
+              {formData.minPurchase > 0 && ` on orders above Rs. ${formData.minPurchase}`}
+              {formData.discountType === "percentage" && formData.maxDiscount > 0 && ` (max Rs. ${formData.maxDiscount})`}
             </p>
           </div>
 

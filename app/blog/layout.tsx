@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     description: "Expert fragrance tips, guides, and the latest trends in luxury perfumes.",
     type: "website",
     url: "https://bilalyousaf12.store/blog",
-    images: ["/luxury-perfume-collection.jpg"],
+    images: ["/logo.png"],
   },
 }
 

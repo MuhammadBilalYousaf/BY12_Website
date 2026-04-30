@@ -60,7 +60,7 @@ export default function AdminOrders() {
           <p className="text-xs sm:text-sm text-gray-400 mt-1">
             {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'} total
             {' • '}
-            Rs.{orderStats.totalRevenue.toFixed(2)} revenue
+            Rs. {orderStats.totalRevenue.toFixed(2)} revenue
           </p>
         </div>
       </header>
@@ -172,7 +172,7 @@ export default function AdminOrders() {
                     <p className="text-xs text-gray-400">{order.customerEmail}</p>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-400">{order.items?.length || 0} items</span>
-                      <span className="text-white font-semibold">Rs.{order.total?.toFixed(2)}</span>
+                      <span className="text-white font-semibold">Rs. {order.total?.toFixed(2)}</span>
                     </div>
                   </div>
 
@@ -221,7 +221,7 @@ export default function AdminOrders() {
                           <p className="text-gray-300">{order.items?.length || 0}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <p className="text-white font-semibold">Rs.{order.total?.toFixed(2) || "0.00"}</p>
+                          <p className="text-white font-semibold">Rs. {order.total?.toFixed(2) || "0.00"}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs font-semibold rounded ${getStatusColor(order.status)}`}>

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     description: "Discover BY12 Perfumes - crafting luxury fragrances since 2015.",
     type: "website",
     url: "https://bilalyousaf12.store/about",
-    images: ["/luxury-perfume-collection.jpg"],
+    images: ["/logo.png"],
   },
 }
 

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description: "Discover luxury fragrances from BY12 Perfumes Pakistan.",
       type: "website",
       url: `https://bilalyousaf12.store/product/${id}`,
-      images: ["/luxury-perfume-collection.jpg"],
+      images: ["/logo.png"],
     },
   }
 }

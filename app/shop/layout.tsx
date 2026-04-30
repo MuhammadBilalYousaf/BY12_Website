@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     description: "Browse our exclusive collection of luxury perfumes for men and women.",
     type: "website",
     url: "https://bilalyousaf12.store/shop",
-    images: ["/luxury-perfume-collection.jpg"],
+    images: ["/logo.png"],
   },
 }
 

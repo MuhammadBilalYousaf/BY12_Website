@@ -56,13 +56,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
                   height: 630,
                   alt: blog.title,
                 }
-              ] : ["/luxury-perfume-collection.jpg"],
+              ] : ["/logo.png"],
             },
             twitter: {
               card: "summary_large_image",
               title,
               description,
-              images: blog.imageUrl ? [blog.imageUrl] : ["/luxury-perfume-collection.jpg"],
+              images: blog.imageUrl ? [blog.imageUrl] : ["/logo.png"],
             },
           }
         }

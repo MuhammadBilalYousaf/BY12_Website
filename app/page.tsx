@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: "BY12 Perfumes",
     images: [
       {
-        url: "/luxury-perfume-collection.jpg",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "BY12 Premium Perfume Collection",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "BY12 Perfumes | Luxury Fragrances in Pakistan",
     description: "Discover BY12's exclusive collection of luxury perfumes.",
-    images: ["/luxury-perfume-collection.jpg"],
+    images: ["/logo.png"],
   },
   alternates: {
     canonical: "https://bilalyousaf12.store",

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAdminAuth } from "@/lib/contexts/admin-auth-context"
-import { Package, ShoppingCart, Users, DollarSign, TrendingUp, Clock, Lock, Mail, Eye, EyeOff } from "lucide-react"
+import { Package, ShoppingCart, Users, Banknote, TrendingUp, Clock, Lock, Mail, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useOrders } from "@/lib/hooks/use-orders"
@@ -149,8 +149,8 @@ function AdminDashboard() {
     },
     { 
       name: "Monthly Revenue", 
-      value: ordersLoading ? "..." : `Rs.${monthlyRevenue.toFixed(2)}`, 
-      icon: DollarSign, 
+      value: ordersLoading ? "..." : `Rs. ${monthlyRevenue.toFixed(2)}`, 
+      icon: Banknote, 
       color: "from-pink-600 to-pink-800", 
       link: "/admin/dashboard" 
     },
@@ -299,7 +299,7 @@ function AdminDashboard() {
 }
 
 export default function AdminPage() {
-  const { user, isLoading, signIn } = useAdminAuth()
+  const { user, loading, signIn } = useAdminAuth()
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -308,12 +308,12 @@ export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // If admin is already logged in, show dashboard
-  if (!isLoading && user) {
+  if (!loading && user) {
     return <AdminDashboard />
   }
 
   // Show loading state
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -328,14 +328,10 @@ export default function AdminPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await signIn(email, password)
-      if (result.success) {
-        router.refresh()
-      } else {
-        setError(result.message)
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.")
+      await signIn(email, password)
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message || "An error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
     }

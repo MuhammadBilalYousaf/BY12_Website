@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     description: "Discover limited-time perfume deals and save on premium BY12 fragrances.",
     type: "website",
     url: "https://bilalyousaf12.store/deals",
-    images: ["/luxury-perfume-collection.jpg"],
+    images: ["/logo.png"],
   },
 }
 
