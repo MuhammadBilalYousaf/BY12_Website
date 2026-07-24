@@ -92,10 +92,7 @@ perfume-luxe/
 
 ## Authentication
 
-### Admin Portal Access
-Demo credentials (for testing):
-- Email: info.bilalyousaf12@gmail.com
-- Password: password123
+
 
 ### Real Authentication
 Users can sign up for customer accounts and place orders.
