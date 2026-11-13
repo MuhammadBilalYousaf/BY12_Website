@@ -14,6 +14,7 @@ import { useCart } from "@/lib/contexts"
 import type { Deal, Product } from "@/lib/types"
 import { ArrowLeft, CalendarClock, ShoppingCart } from "lucide-react"
 import { toSlug } from "@/lib/utils"
+import { FadeInSection } from "@/components/animated-section"
 
 interface DealDetailsPageProps {
   params: Promise<{ id: string }>
@@ -76,19 +77,19 @@ export default function DealDetailsPage({ params }: DealDetailsPageProps) {
             <div className="animate-pulse rounded-2xl h-[420px] bg-slate-700/50" />
           </div>
         ) : !deal ? (
-          <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+          <FadeInSection className="max-w-7xl mx-auto px-4 py-16 text-center" variant="heading">
             <h1 className="text-3xl font-bold text-white mb-3">Deal Not Found</h1>
             <p className="text-slate-400 mb-6">This deal does not exist or has been removed.</p>
             <Link
               href="/deals"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 btn-premium"
             >
               <ArrowLeft size={16} /> Back to Deals
             </Link>
-          </div>
+          </FadeInSection>
         ) : (
           <section className="max-w-7xl mx-auto px-4 pb-16">
-            <div
+            <FadeInSection
               className="rounded-2xl overflow-hidden"
               style={{
                 background: "linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)",
@@ -149,21 +150,21 @@ export default function DealDetailsPage({ params }: DealDetailsPageProps) {
                     <button
                       type="button"
                       onClick={() => handleClaimDeal()}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 transition"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 btn-premium"
                     >
                       <ShoppingCart size={18} /> Claim Deal
                     </button>
                     <button
                       type="button"
                       onClick={() => router.push("/deals")}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg font-semibold hover:bg-slate-600 transition"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg font-semibold hover:bg-slate-600 btn-premium"
                     >
                       Back to Deals
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
+            </FadeInSection>
 
             <DealDetailsExtras
               deals={deals}

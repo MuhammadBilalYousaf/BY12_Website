@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { MailX, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import { FadeInSection } from "@/components/animated-section"
 import { collection, query, where, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
@@ -121,7 +122,7 @@ function UnsubscribeContent() {
     <>
       <Navbar />
       <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center py-20">
-        <div className="max-w-md w-full mx-4">
+        <FadeInSection className="max-w-md w-full mx-4" variant="heading" blur>
           {success ? (
             <div
               className="rounded-2xl p-8 text-center"
@@ -226,7 +227,7 @@ function UnsubscribeContent() {
               </p>
             </div>
           )}
-        </div>
+        </FadeInSection>
       </main>
       <Footer />
     </>

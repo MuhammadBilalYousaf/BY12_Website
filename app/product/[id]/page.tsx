@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useCart, useWishlist } from "@/lib/contexts"
+import { useRouter } from "next/navigation"
+import { useCart, useWishlist, useAuth } from "@/lib/contexts"
 import type { Product } from "@/lib/types"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
@@ -12,10 +13,13 @@ import PageBreadcrumb from "@/components/page-breadcrumb"
 import { ProductSchema, BreadcrumbSchema } from "@/components/seo-schemas"
 import Toast from "@/components/toast"
 import { FadeInSection, FadeInStagger, FadeInItem } from "@/components/animated-section"
+import PerfumeScrollStory from "@/components/perfume-scroll-story"
+import { resolveProductModel } from "@/lib/product-model"
 import { Star, ShoppingCart, Heart, Share2, Package, Truck, Shield, User } from "lucide-react"
 import { doc, getDoc, collection, query, where, onSnapshot, limit } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useProductReviews } from "@/lib/hooks/use-product-reviews"
+import { trackProductView } from "@/lib/tracking"
 
 interface ProductPageProps {
   params: Promise<{ id: string }>
@@ -23,7 +27,9 @@ interface ProductPageProps {
 
 export default function ProductPage({ params }: ProductPageProps) {
   const { id } = React.use(params)
+  const router = useRouter()
   const { addItem } = useCart()
+  const { user } = useAuth()
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState<number | undefined>(undefined)
@@ -49,10 +55,16 @@ export default function ProductPage({ params }: ProductPageProps) {
         
         if (productSnap.exists()) {
           const productData = productSnap.data()
+          // For testers, set inStock based on testerQuantity
+          const isTester = productData.isTester === true
+          const inStockValue = isTester 
+            ? ((productData.testerQuantity ?? 0) > 0)
+            : (productData.inStock ?? (productData.stock > 0))
+          
           setProduct({ 
             id: productSnap.id, 
             ...productData,
-            inStock: productData.inStock ?? (productData.stock > 0)
+            inStock: inStockValue
           } as Product)
         } else {
           setProduct(null)
@@ -68,13 +80,24 @@ export default function ProductPage({ params }: ProductPageProps) {
     fetchProduct()
   }, [id])
 
+  // Track product page views
+  useEffect(() => {
+    if (!product) return
+    trackProductView(product.id, product.name, user?.email, user?.id).catch(() => {})
+  }, [product?.id, user?.email, user?.id])
+
   // Fetch related products when product is loaded
   useEffect(() => {
     if (!product) return
 
     // Set default selected size and price when product loads
-    if (product.sizeVariants && product.sizeVariants.length > 0) {
-      // Find first variant with stock available
+    if (product.isTester === true) {
+      // For testers, use fixed testerSize
+      const testerSize = (product as any).testerSize || 5
+      setSelectedSize(testerSize)
+      setSelectedPrice(product.price)
+    } else if (product.sizeVariants && product.sizeVariants.length > 0) {
+      // For regular products, find first variant with stock available
       const availableVariant = product.sizeVariants.find(v => v.stock > 0) || product.sizeVariants[0]
       const defaultPrice = availableVariant.onSale
         ? calculateSalePrice(availableVariant.price, availableVariant.saleType, availableVariant.saleValue)
@@ -181,6 +204,21 @@ export default function ProductPage({ params }: ProductPageProps) {
     setQuantity(1)
   }
 
+  const handleBuyNow = () => {
+    const currentStock = getSelectedVariantStock()
+    if (currentStock <= 0) {
+      setToastMessage("This size is out of stock")
+      setToastType("error")
+      setShowToast(true)
+      return
+    }
+
+    const sizeToAdd = selectedSize ?? product.size
+    const priceToAdd = selectedPrice ?? product.price
+    addItem(product, quantity, sizeToAdd, priceToAdd)
+    router.push("/checkout")
+  }
+
   const handleWishlistToggle = () => {
     if (inWishlist) {
       removeFromWishlist(product.id)
@@ -230,6 +268,11 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   // Get selected variant's stock
   const getSelectedVariantStock = () => {
+    // For testers, always use testerQuantity regardless of variant
+    if (product.isTester === true) {
+      return (product as any).testerQuantity ?? 0
+    }
+    
     if (product.sizeVariants && product.sizeVariants.length > 0 && selectedSize) {
       const variant = product.sizeVariants.find(v => v.size === selectedSize)
       return variant?.stock ?? 0
@@ -251,7 +294,12 @@ export default function ProductPage({ params }: ProductPageProps) {
   const originalPrice = selectedVariant?.price ?? product.price
   const hasSale = Boolean(selectedVariant?.onSale) && (selectedVariant?.saleValue ?? 0) > 0
   const selectedVariantSaleImage = hasSale ? selectedVariant?.saleImageUrl?.trim() : ""
-  const selectedVariantImages = (selectedVariant?.images ?? []).filter((img): img is string => typeof img === "string" && img.trim().length > 0)
+  
+  // Get variant images, with fallback to product images
+  const variantImages = (selectedVariant?.images ?? []).filter((img): img is string => typeof img === "string" && img.trim().length > 0)
+  const productImages = (product.images ?? []).filter((img): img is string => typeof img === "string" && img.trim().length > 0)
+  const selectedVariantImages = variantImages.length > 0 ? variantImages : productImages
+  const productModel = resolveProductModel(product, selectedSize ?? selectedVariant?.size)
   const displayPrice = hasSale
     ? calculateSalePrice(originalPrice, selectedVariant?.saleType, selectedVariant?.saleValue)
     : (selectedPrice ?? originalPrice)
@@ -412,7 +460,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 )}
 
                 {/* Size Selection */}
-                {product.sizeVariants && product.sizeVariants.length > 1 && (
+                {product.isTester !== true && product.sizeVariants && product.sizeVariants.length > 1 && (
                   <div className="mb-6">
                     <h4 className="text-sm font-semibold text-slate-400 mb-3">Select Size</h4>
                     <div className="flex flex-wrap gap-3">
@@ -477,10 +525,16 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <p className="text-sm text-slate-400 mb-1">Brand</p>
                     <p className="font-semibold text-white">{product.brand}</p>
                   </div>
-                  {selectedSize && (
+                  {product.isTester !== true && selectedSize && (
                     <div>
                       <p className="text-sm text-slate-400 mb-1">Selected Size</p>
                       <p className="font-semibold text-white">{selectedSize} ml</p>
+                    </div>
+                  )}
+                  {product.isTester === true && (
+                    <div>
+                      <p className="text-sm text-slate-400 mb-1">Size</p>
+                      <p className="font-semibold text-white">{product.testerSize || 5} ml</p>
                     </div>
                   )}
                   <div>
@@ -490,7 +544,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400 mb-1">Stock {selectedSize && `(${selectedSize}ml)`}</p>
+                    <p className="text-sm text-slate-400 mb-1">{product.isTester === true ? `Testers (${product.testerSize || 5}ml)` : `Stock ${selectedSize ? `(${selectedSize}ml)` : ''}`}</p>
                     <p className={`font-semibold ${inStock ? 'text-green-400' : 'text-red-400'}`}>
                       {inStock ? `${selectedStock} available` : 'Out of stock'}
                     </p>
@@ -502,32 +556,45 @@ export default function ProductPage({ params }: ProductPageProps) {
               {inStock && (
                 <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
                   <p className="text-green-400 font-semibold text-sm">
-                    ✓ {selectedStock} in stock {selectedSize && `for ${selectedSize}ml`} - Order now!
+                    ✓ {selectedStock} in stock {product.isTester !== true && selectedSize && `for ${selectedSize}ml`} - Order now!
                   </p>
                 </div>
               )}
 
               {!inStock && (
                 <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
-                  <p className="text-red-400 font-semibold">Out of Stock {selectedSize && `for ${selectedSize}ml`}</p>
+                  <p className="text-red-400 font-semibold">Out of Stock {product.isTester !== true && selectedSize && `for ${selectedSize}ml`}</p>
+                </div>
+              )}
+
+              {/* Tester Notice */}
+              {product.isTester === true && (
+                <div className="mb-6 p-4 bg-purple-500/20 border border-purple-400/50 rounded-lg">
+                  <p className="text-purple-300 font-semibold text-sm">
+                    ℹ️ Each tester can only be ordered once per variant
+                  </p>
                 </div>
               )}
 
               {/* Quantity & Add to Cart */}
-              <div className="flex gap-3 mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700 rounded-lg px-2 py-1">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded transition text-lg font-bold text-white disabled:opacity-50"
-                    disabled={!inStock || quantity <= 1}
+                    disabled={!inStock || quantity <= 1 || product.isTester === true}
                   >
                     −
                   </button>
                   <span className="w-8 text-center font-semibold text-base text-white">{quantity}</span>
                   <button
-                    onClick={() => setQuantity(Math.min(selectedStock, quantity + 1))}
+                    onClick={() => {
+                      if (product.isTester !== true) {
+                        setQuantity(Math.min(selectedStock, quantity + 1))
+                      }
+                    }}
                     className="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded transition text-lg font-bold text-white disabled:opacity-50"
-                    disabled={!inStock || quantity >= selectedStock}
+                    disabled={!inStock || quantity >= selectedStock || product.isTester === true}
                   >
                     +
                   </button>
@@ -543,7 +610,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pb-8 border-b border-slate-700">
+              <div className="flex flex-col sm:flex-row gap-3 pb-8 border-b border-slate-700">
                 <button
                   onClick={handleWishlistToggle}
                   className={`flex-1 px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 border-2 ${
@@ -598,7 +665,26 @@ export default function ProductPage({ params }: ProductPageProps) {
             </div>
             </FadeInSection>
           </div>
+        </div>
 
+        {/* Luxury scroll-driven bottle story (full-bleed) */}
+        {product.isTester !== true && productModel && (
+          <PerfumeScrollStory
+            productName={product.name}
+            modelUrl={productModel.url}
+            brand={product.brand || "BY12"}
+            category={product.category}
+            descriptionExcerpt={product.description}
+            fragranceLine={product.fragranceLine}
+            fragranceNotes={product.fragranceNotes}
+            fragranceIngredients={product.fragranceIngredients}
+            inStock={inStock}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
+          />
+        )}
+
+        <div className="max-w-7xl mx-auto px-4 pb-8 md:pb-12">
           {/* Customer Reviews Section */}
           <FadeInSection delay={0.1}>
           <div className="border-t border-slate-700 pt-12 mb-12">
@@ -623,6 +709,19 @@ export default function ProductPage({ params }: ProductPageProps) {
               )}
             </div>
 
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-4">
+              <div>
+                <p className="font-semibold text-white">Purchased this product?</p>
+                <p className="text-sm text-slate-400">Guests can review after purchase from the tracking page using their order ID and email.</p>
+              </div>
+              <Link
+                href="/track-order"
+                className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-accent/90"
+              >
+                Track Order & Review
+              </Link>
+            </div>
+
             {reviewsLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
@@ -631,7 +730,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               <div className="text-center py-12 bg-slate-800/30 rounded-xl border border-slate-700">
                 <Star className="mx-auto text-slate-600 mb-4" size={48} />
                 <p className="text-slate-400 mb-2">No reviews yet</p>
-                <p className="text-sm text-slate-500">Be the first to review this product after purchase!</p>
+                <p className="text-sm text-slate-500">Reviews are written from completed orders after purchase verification on the tracking page.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

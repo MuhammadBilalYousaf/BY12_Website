@@ -32,6 +32,7 @@ import { useUserProfile, UserAddress } from "@/lib/hooks/use-user-profile"
 import { useUserReviews } from "@/lib/hooks/use-product-reviews"
 import { useLikedBlogs } from "@/lib/hooks/use-liked-blogs"
 import type { Product } from "@/lib/types"
+import { FadeInSection } from "@/components/animated-section"
 
 type TabType = "overview" | "orders" | "wishlist" | "addresses" | "reviews" | "liked-articles" | "settings"
 
@@ -203,7 +204,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <FadeInSection className="max-w-7xl mx-auto px-4 py-8" variant="heading">
           <div className="flex items-center gap-6">
             {/* Avatar */}
             <div className="relative">
@@ -248,14 +249,14 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </div>
+        </FadeInSection>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <div className="lg:w-64 shrink-0">
+          <FadeInSection className="lg:w-64 shrink-0" delay={0.1}>
             <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden sticky top-24">
               <nav className="p-2">
                 {tabs.map((tab) => (
@@ -291,10 +292,10 @@ export default function ProfilePage() {
                 </button>
               </nav>
             </div>
-          </div>
+          </FadeInSection>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <FadeInSection className="flex-1 min-w-0" delay={0.15}>
             {/* Overview Tab */}
             {activeTab === "overview" && (
               <div className="space-y-6">
@@ -920,7 +921,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
-          </div>
+          </FadeInSection>
         </div>
       </div>
 

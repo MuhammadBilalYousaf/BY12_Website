@@ -27,40 +27,30 @@ export default function ContactPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value }
 
-    // Track form field changes with debouncing (for both signed-in users and guests)
-    if (trackingTimeoutRef.current) {
-      clearTimeout(trackingTimeoutRef.current)
-    }
-    
-    trackingTimeoutRef.current = setTimeout(() => {
-      // For signed-in users, use their email
-      if (user?.email) {
-        trackFormFieldChange(
-          user.email.toLowerCase(),
-          name,
-          value,
-          "contact_form",
-          user.id
-        ).catch(() => {
-          // Silently fail - don't disrupt user experience
-        })
-      } else {
-        // For guests, use guest session ID
-        const guestId = getOrCreateGuestId()
-        trackFormFieldChange(
-          "", // No email yet for guests
-          name,
-          value,
-          "contact_form",
-          undefined,
-          guestId // Pass guest session ID
-        ).catch(() => {
-          // Silently fail - don't disrupt user experience
-        })
+      if (trackingTimeoutRef.current) {
+        clearTimeout(trackingTimeoutRef.current)
       }
-    }, 1000)
+
+      trackingTimeoutRef.current = setTimeout(() => {
+        const emailForTrack =
+          (name === "email" ? value : next.email) || user?.email || ""
+        const guestId = !user ? getOrCreateGuestId() : undefined
+
+        trackFormFieldChange(
+          emailForTrack.toLowerCase(),
+          name,
+          value,
+          "contact_form",
+          user?.id,
+          guestId
+        ).catch(() => {})
+      }, 600)
+
+      return next
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,21 +74,18 @@ export default function ContactPage() {
       console.log("Message saved to Firestore with ID:", docRef.id)
 
       // Track contact form submission
+      const guestId = !user ? getOrCreateGuestId() : undefined
       await trackContactSubmission(
         formData.email.toLowerCase(),
         `${formData.firstName} ${formData.lastName}`,
         docRef.id,
-        user?.id
-      ).catch(() => {
-        // Silently fail - don't disrupt user experience
-      })
+        user?.id,
+        guestId
+      ).catch(() => {})
 
       // Link all guest interactions (cart, etc.) to this email if user is not signed in
       if (!user) {
-        await linkGuestInteractionsToEmail(formData.email.toLowerCase()).catch(() => {
-          // Silently fail
-        })
-        // Clear guest ID after linking
+        await linkGuestInteractionsToEmail(formData.email.toLowerCase(), guestId).catch(() => {})
         clearGuestId()
       }
 

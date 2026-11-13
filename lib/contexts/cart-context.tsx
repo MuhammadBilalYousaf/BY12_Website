@@ -174,16 +174,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       )
       let newItems: CartItem[]
 
+      // For testers, restrict quantity to 1
+      const isTester = product.isTester === true
+      const itemQuantity = isTester ? 1 : quantity
+
       if (existingItem) {
-        newItems = currentItems.map((item) =>
-          item.product.id === product.id && item.selectedSize === resolvedSize
-            ? { ...item, quantity: item.quantity + quantity, selectedPrice: resolvedPrice }
-            : item
-        )
+        if (isTester) {
+          // For testers, don't increase quantity - keep it at 1
+          newItems = currentItems
+        } else {
+          // For regular products, add quantity normally
+          newItems = currentItems.map((item) =>
+            item.product.id === product.id && item.selectedSize === resolvedSize
+              ? { ...item, quantity: item.quantity + itemQuantity, selectedPrice: resolvedPrice }
+              : item
+          )
+        }
       } else {
         newItems = [...currentItems, { 
           product, 
-          quantity, 
+          quantity: itemQuantity, 
           productId: product.id,
           selectedSize: resolvedSize,
           selectedPrice: resolvedPrice,
@@ -256,9 +266,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     setItems((currentItems) => {
+      const item = currentItems.find(
+        (item) => item.product.id === productId && item.selectedSize === selectedSize
+      )
+      
+      // For testers, restrict quantity to 1
+      const isTester = item?.product.isTester === true
+      const finalQuantity = isTester ? Math.min(quantity, 1) : quantity
+
       const newItems = currentItems.map((item) => 
         item.product.id === productId && item.selectedSize === selectedSize
-          ? { ...item, quantity } 
+          ? { ...item, quantity: finalQuantity } 
           : item
       )
       saveCart(newItems, discount, appliedCoupon)

@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { X, Star, Wand2, Plus, Trash2, GripVertical, Image as ImageIcon } from "lucide-react"
-import { Product } from "@/lib/hooks/use-products"
+import type { Product } from "@/lib/types"
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
 import { storage } from "@/lib/firebase"
 import RichTextEditor from "./rich-text-editor"
+import ProductModelField from "./product-model-field"
+import { isProductModelUrl } from "@/lib/product-model"
 
 interface SizeVariant {
   size: number
@@ -37,9 +39,14 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
     stock: 0,
     description: "",
     imageUrl: "",
+    modelUrl: "",
+    modelSize: 50,
     images: [] as string[],
     status: "Active" as "Active" | "Out of Stock",
     featured: false,
+    isTester: false,
+    testerQuantity: 100,
+    testerSize: 5,
     metaTitle: "",
     metaDescription: "",
     ogTitle: "",
@@ -47,6 +54,11 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
     keywords: "",
     imageFiles: [] as File[],
     altText: "",
+    fragranceLine: "",
+    topNotes: "",
+    middleNotes: "",
+    baseNotes: "",
+    fragranceIngredients: "",
   })
   const [sizeVariants, setSizeVariants] = useState<SizeVariant[]>([{ size: 50, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [] }])
   const [variantImageInputs, setVariantImageInputs] = useState<string[]>([""])
@@ -72,12 +84,17 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
         category: product.category,
         price: product.price,
         size: product.size || 50,
-        stock: product.stock,
+        stock: product.stock || 0,
         description: product.description || "",
         imageUrl: product.imageUrl || "",
+        modelUrl: product.modelUrl || "",
+        modelSize: product.modelSize ?? product.sizeVariants?.[0]?.size ?? product.size ?? 50,
         images: existingImages,
-        status: product.status,
+        status: product.status || "Active",
         featured: product.featured || false,
+        isTester: product.isTester || false,
+        testerQuantity: product.testerQuantity || 100,
+        testerSize: product.testerSize || 3,
         metaTitle: product.metaTitle || "",
         metaDescription: product.metaDescription || "",
         ogTitle: product.ogTitle || "",
@@ -85,6 +102,11 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
         keywords: product.keywords || "",
         altText: product.altText || "",
         imageFiles: [],
+        fragranceLine: product.fragranceLine || "",
+        topNotes: (product.fragranceNotes?.top || []).join(", "),
+        middleNotes: (product.fragranceNotes?.middle || []).join(", "),
+        baseNotes: (product.fragranceNotes?.base || []).join(", "),
+        fragranceIngredients: (product.fragranceIngredients || []).join(", "),
       })
       // Load size variants or create from single size/price
       if (product.sizeVariants && product.sizeVariants.length > 0) {
@@ -127,9 +149,14 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
         stock: 0,
         description: "",
         imageUrl: "",
+        modelUrl: "",
+        modelSize: 50,
         images: [],
         status: "Active",
         featured: false,
+        isTester: false,
+        testerQuantity: 100,
+        testerSize: 5,
         metaTitle: "",
         metaDescription: "",
         ogTitle: "",
@@ -137,6 +164,11 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
         keywords: "",
         altText: "",
         imageFiles: [],
+        fragranceLine: "",
+        topNotes: "",
+        middleNotes: "",
+        baseNotes: "",
+        fragranceIngredients: "",
       })
       setSizeVariants([{ size: 50, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [] }])
       setVariantImageInputs([""])
@@ -357,12 +389,14 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (formData.modelUrl.trim() && !isProductModelUrl(formData.modelUrl)) { setError("Enter a valid public HTTPS GLB link, or leave it empty."); return }
     setError("")
     setIsSaving(true)
 
-    // Validate size variants - ensure all have size, price, and stock >= 0
+    // Validate size variants - ensure all have size and stock >= 0
+    // For testers, price can be 0; for regular products, price must be > 0
     const validVariants = sizeVariants
-      .filter((v) => v.size > 0 && v.price > 0 && (v.stock ?? 0) >= 0)
+      .filter((v) => v.size > 0 && (formData.isTester || v.price > 0) && (v.stock ?? 0) >= 0)
       .map((v) => {
         const rawSaleValue = Math.trunc(Number(v.saleValue ?? 0))
         const saleValue = Math.max(0, rawSaleValue)
@@ -398,22 +432,69 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
 
     // Use the first variant's price as the base price for backward compatibility
     const basePrice = validVariants[0].price
-    const baseSize = validVariants[0].size
-    const baseVariantImages = validVariants[0].images ?? []
+    const baseSize = formData.isTester ? formData.testerSize : validVariants[0].size
+    
+    // Ensure first variant has images - if not, use product images
+    const productImages = formData.images.filter((img): img is string => typeof img === "string" && img.trim().length > 0)
+    const baseVariantImages = (validVariants[0].images ?? []).filter((img): img is string => typeof img === "string" && img.trim().length > 0)
+    const finalVariantImages = baseVariantImages.length > 0 ? baseVariantImages : productImages
+    
+    // Update first variant with images if it doesn't have them, and update size/stock/price for testers
+    const updatedVariants = validVariants.map((variant, index) => {
+      if (index === 0) {
+        const updates: any = {}
+        if (!variant.images || variant.images.length === 0) {
+          updates.images = finalVariantImages
+        }
+        if (formData.isTester) {
+          updates.size = formData.testerSize
+          updates.stock = formData.testerQuantity
+          updates.price = 0 // Testers are always free
+        }
+        return { ...variant, ...updates }
+      }
+      return variant
+    })
     
     // Calculate total stock from all variants
-    const totalStock = validVariants.reduce((sum, v) => sum + v.stock, 0)
+    const totalStock = updatedVariants.reduce((sum, v) => sum + v.stock, 0)
+
+    const parseCommaList = (value: string) =>
+      value
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+
+    const {
+      imageFiles: _imageFiles,
+      topNotes,
+      middleNotes,
+      baseNotes,
+      fragranceIngredients: fragranceIngredientsRaw,
+      ...formFields
+    } = formData
 
     // Convert stock number to inStock boolean for consistency
     const productData = {
-      ...formData,
+      ...formFields,
+      modelUrl: formData.modelUrl.trim(),
       price: basePrice,
       size: baseSize,
       stock: totalStock,
-      sizeVariants: validVariants,
+      sizeVariants: updatedVariants,
       inStock: totalStock > 0,
-      imageUrl: baseVariantImages[0] || "",
-      images: baseVariantImages,
+      imageUrl: finalVariantImages[0] || "",
+      images: finalVariantImages,
+      isTester: formData.isTester,
+      testerQuantity: formData.isTester ? formData.testerQuantity : 0,
+      testerSize: formData.isTester ? formData.testerSize : 0,
+      fragranceLine: formData.fragranceLine.trim(),
+      fragranceNotes: {
+        top: parseCommaList(topNotes),
+        middle: parseCommaList(middleNotes),
+        base: parseCommaList(baseNotes),
+      },
+      fragranceIngredients: parseCommaList(fragranceIngredientsRaw),
     }
 
     console.log("💾 Saving product with sizeVariants:", productData.sizeVariants)
@@ -971,6 +1052,88 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
               />
             </div>
 
+            <ProductModelField
+              key={product?.id || "new-product"}
+              url={formData.modelUrl}
+              size={formData.modelSize}
+              sizes={sizeVariants.map(variant => variant.size)}
+              productName={formData.name}
+              disabled={isSaving}
+              onChange={(modelUrl, modelSize) => setFormData(previous => ({ ...previous, modelUrl, modelSize }))}
+            />
+
+            {/* Fragrance Story */}
+            <div className="md:col-span-2">
+              <h3 className="text-lg font-semibold text-white mb-2">Fragrance Story</h3>
+              <p className="text-xs text-gray-400 mb-4">
+                Comma-separated. Used in the product scroll story.
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                    Fragrance Line
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.fragranceLine}
+                    onChange={(e) => setFormData({ ...formData, fragranceLine: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="A short poetic line for the fragrance chapter"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      Top Notes
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.topNotes}
+                      onChange={(e) => setFormData({ ...formData, topNotes: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Bergamot, Black Pepper"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      Middle Notes
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.middleNotes}
+                      onChange={(e) => setFormData({ ...formData, middleNotes: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Rose, Jasmine"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      Base Notes
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.baseNotes}
+                      onChange={(e) => setFormData({ ...formData, baseNotes: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Oud, Amber, Musk"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                    Fragrance Ingredients
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.fragranceIngredients}
+                    onChange={(e) => setFormData({ ...formData, fragranceIngredients: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Rose, Oud, Amber, Vanilla"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="md:col-span-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-semibold text-gray-300">
@@ -1111,6 +1274,101 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
                   />
                 </button>
               </div>
+            </div>
+
+            {/* Tester Product Toggle */}
+            <div className="md:col-span-2">
+              <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg border border-slate-600">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${formData.isTester ? 'bg-amber-500/20' : 'bg-slate-600'}`}>
+                    <span className="text-2xl">🎁</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold">Tester/Sample Product</p>
+                    <p className="text-sm text-gray-400">
+                      Mark this as a free fragrance sample/tester
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newIsTester = !formData.isTester
+                    setFormData({ ...formData, isTester: newIsTester })
+                    // Update variant size when toggling tester mode
+                    if (newIsTester) {
+                      setSizeVariants((prev) => [
+                        { ...prev[0], size: formData.testerSize },
+                        ...prev.slice(1),
+                      ])
+                    }
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    formData.isTester ? 'bg-purple-600' : 'bg-slate-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.isTester ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Tester Configuration */}
+              {formData.isTester && (
+                <div className="md:col-span-2 mt-4 p-4 bg-slate-700/50 rounded-lg border border-amber-500/30 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      Available Tester Quantity
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.testerQuantity}
+                      onChange={(e) => {
+                        const newQuantity = parseInt(e.target.value) || 0
+                        setFormData({ ...formData, testerQuantity: newQuantity })
+                        // Also update the first variant stock to keep them in sync
+                        setSizeVariants((prev) => [
+                          { ...prev[0], stock: newQuantity },
+                          ...prev.slice(1),
+                        ])
+                      }}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder="e.g. 100"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Number of tester samples available</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      Tester Size (ml)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.testerSize}
+                      onChange={(e) => {
+                        const newSize = parseInt(e.target.value) || 5
+                        setFormData({ ...formData, testerSize: newSize })
+                        // Also update the first variant size to keep them in sync
+                        setSizeVariants((prev) => [
+                          { ...prev[0], size: newSize },
+                          ...prev.slice(1),
+                        ])
+                      }}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder="e.g. 5"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Standard tester size (usually 5ml)</p>
+                  </div>
+
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-amber-200 text-sm">
+                    💡 Set the product price to 0 for completely free testers, or set a price if there's a cost
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

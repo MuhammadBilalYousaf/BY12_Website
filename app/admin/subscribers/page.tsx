@@ -27,7 +27,7 @@ interface Subscriber {
   id: string
   email: string
   status: "active" | "unsubscribed"
-  subscribedAt: Timestamp
+  subscribedAt: Timestamp | string | Date | any
 }
 
 export default function AdminSubscribersPage() {
@@ -77,9 +77,14 @@ export default function AdminSubscribersPage() {
     const activeSubscribers = subscribers.filter(s => s.status === "active")
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Email,Subscribed Date,Status\n"
-      + activeSubscribers.map(s => 
-          `${s.email},${s.subscribedAt?.toDate().toLocaleDateString() || "N/A"},${s.status}`
-        ).join("\n")
+      + activeSubscribers.map(s => {
+          const dateStr = s.subscribedAt 
+            ? (typeof s.subscribedAt === 'string' 
+              ? new Date(s.subscribedAt).toLocaleDateString() 
+              : s.subscribedAt.toDate?.()?.toLocaleDateString() || "N/A")
+            : "N/A"
+          return `${s.email},${dateStr},${s.status}`
+        }).join("\n")
     
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
@@ -97,9 +102,18 @@ export default function AdminSubscribersPage() {
   const activeCount = subscribers.filter(s => s.status === "active").length
   const unsubscribedCount = subscribers.filter(s => s.status === "unsubscribed").length
 
-  const formatDate = (timestamp: Timestamp) => {
+  const formatDate = (timestamp: any) => {
     if (!timestamp) return "N/A"
-    const date = timestamp.toDate()
+    let date: Date
+    if (typeof timestamp === 'string') {
+      date = new Date(timestamp)
+    } else if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate()
+    } else if (timestamp instanceof Date) {
+      date = timestamp
+    } else {
+      return "N/A"
+    }
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",

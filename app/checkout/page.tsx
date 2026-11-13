@@ -10,7 +10,7 @@ import { CreditCard, Truck, ShoppingBag, Banknote, Tag } from "lucide-react"
 import Toast from "@/components/toast"
 import { useOrders } from "@/lib/hooks/use-orders"
 import { useCoupons } from "@/lib/hooks/use-coupons"
-import { trackFormFieldChange, trackOrderCompletion, linkGuestInteractionsToEmail, clearGuestId } from "@/lib/tracking"
+import { trackFormFieldChange, trackOrderCompletion, linkGuestInteractionsToEmail, clearGuestId, getOrCreateGuestId } from "@/lib/tracking"
 import { FadeInSection } from "@/components/animated-section"
 
 export default function CheckoutPage() {
@@ -23,7 +23,7 @@ export default function CheckoutPage() {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "cod">("card")
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "cod">("cod")
   const trackingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Form state
@@ -57,28 +57,31 @@ export default function CheckoutPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData({
-      ...formData,
-      [name]: value,
-    })
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value }
 
-    // Track form field changes with debouncing
-    if (trackingTimeoutRef.current) {
-      clearTimeout(trackingTimeoutRef.current)
-    }
+      // Track every keystroke (debounced) for guests and signed-in users
+      if (trackingTimeoutRef.current) {
+        clearTimeout(trackingTimeoutRef.current)
+      }
 
-    trackingTimeoutRef.current = setTimeout(() => {
-      if (formData.email) {
+      trackingTimeoutRef.current = setTimeout(() => {
+        const emailForTrack =
+          (name === "email" ? value : next.email) || user?.email || ""
+        const guestId = !user ? getOrCreateGuestId() : undefined
+
         trackFormFieldChange(
-          formData.email.toLowerCase(),
+          emailForTrack.toLowerCase(),
           name,
           value,
-          "checkout"
-        ).catch(() => {
-          // Silently fail - don't disrupt user experience
-        })
-      }
-    }, 1000)
+          "checkout",
+          user?.id,
+          guestId
+        ).catch(() => {})
+      }, 600)
+
+      return next
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,35 +169,32 @@ export default function CheckoutPage() {
       // Create order in Firebase
       const result = await createOrder(orderData)
 
-      if (result.success) {
+      if (result.success && result.orderId) {
         console.log("✅ ORDER CREATED SUCCESSFULLY IN FIREBASE!")
         console.log("Order ID:", result.orderId)
         console.log("Document ID:", result.id)
 
         // Track order completion
+        const guestId = !user ? getOrCreateGuestId() : undefined
         await trackOrderCompletion(
           formData.email.toLowerCase(),
           result.orderId,
           finalTotal,
           user?.id,
-          paymentMethod === "cod" ? "Cash on Delivery" : "Credit/Debit Card"
-        ).catch(() => {
-          // Silently fail - don't disrupt user experience
-        })
+          paymentMethod === "cod" ? "Cash on Delivery" : "Credit/Debit Card",
+          guestId
+        ).catch(() => {})
 
-        // Link all guest interactions (cart, etc.) to this email if user is not signed in
+        // Link all guest interactions (cart, typing, etc.) to this email
         if (!user) {
-          await linkGuestInteractionsToEmail(formData.email.toLowerCase()).catch(() => {
-            // Silently fail
-          })
-          // Clear guest ID after linking
+          await linkGuestInteractionsToEmail(formData.email.toLowerCase(), guestId).catch(() => {})
           clearGuestId()
         }
 
         // Increment coupon usage if a coupon was applied
         if (appliedCoupon) {
           console.log("📍 Incrementing coupon usage for:", appliedCoupon)
-          await useCoupon(appliedCoupon)
+          await useCoupon(appliedCoupon, formData.email.toLowerCase())
         }
 
         // Send order confirmation email to customer
@@ -244,6 +244,7 @@ export default function CheckoutPage() {
           orderId: result.orderId,
           appliedCoupon: appliedCoupon,
           discount: discountAmount,
+          shipping: shippingAmount,
           orderDate: new Date().toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
@@ -497,7 +498,8 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("card")}
-                      className={`p-4 border-2 rounded-lg transition flex items-center justify-center gap-3 ${
+                      disabled={true}
+                      className={`p-4 border-2 rounded-lg transition flex items-center justify-center gap-3 opacity-50 cursor-not-allowed ${
                         paymentMethod === "card"
                           ? "border-accent bg-accent/10 text-accent"
                           : "border-slate-600 hover:border-accent/50 text-white"

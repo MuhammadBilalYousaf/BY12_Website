@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar"
 import Hero from "@/components/hero"
 import FeaturedProducts from "@/components/featured-products"
 import FeaturedDeals from "@/components/featured-deals"
+import FeaturedTesters from "@/components/featured-testers"
 import Testimonials from "@/components/testimonials"
 import FAQ from "@/components/faq"
 import Footer from "@/components/footer"
@@ -52,6 +53,7 @@ export default function Home() {
       <Hero />
       <FeaturedProducts />
       <FeaturedDeals />
+      <FeaturedTesters />
       <BlogSection />
       <Testimonials />
       <FAQ />

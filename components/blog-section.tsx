@@ -312,7 +312,7 @@ export default function BlogSection() {
           <div className="flex justify-center mt-8 md:mt-10">
             <a
               href="/blog"
-              className="group px-6 sm:px-8 py-3 sm:py-4 bg-accent hover:bg-accent/90 text-slate-900 rounded-xl font-bold text-sm sm:text-lg shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 transition-all duration-300 inline-flex items-center gap-2"
+              className="group px-6 sm:px-8 py-3 sm:py-4 bg-accent hover:bg-accent/90 text-slate-900 rounded-xl font-bold text-sm sm:text-lg shadow-lg shadow-accent/25 btn-premium inline-flex items-center gap-2"
             >
               View All Articles
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

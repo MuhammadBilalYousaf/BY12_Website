@@ -19,7 +19,8 @@ import {
   Mail,
   Inbox,
   BadgePercent,
-  Activity
+  Activity,
+  Sparkles
 } from "lucide-react"
 import { useState } from "react"
 
@@ -31,6 +32,7 @@ export default function AdminSidebar() {
   const navigation = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Products", href: "/admin/products", icon: Package },
+    { name: "Testers", href: "/admin/testers", icon: Sparkles },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
     { name: "Coupons", href: "/admin/coupons", icon: Tag },
     { name: "Deals", href: "/admin/deals", icon: BadgePercent },

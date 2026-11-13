@@ -119,6 +119,10 @@ export default function CustomerInteractionsAdmin() {
       sign_up: "Sign Up",
       sign_in: "Sign In",
       product_view: "Product View",
+      page_view: "Page View",
+      tester_request_form: "Tester Request",
+      newsletter: "Newsletter",
+      sign_up_form: "Sign Up Form",
     }
     return labels[type] || type
   }
@@ -132,6 +136,10 @@ export default function CustomerInteractionsAdmin() {
       sign_up: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
       sign_in: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
       product_view: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+      page_view: "bg-slate-500/20 text-slate-300 border-slate-500/30",
+      tester_request_form: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+      newsletter: "bg-teal-500/20 text-teal-400 border-teal-500/30",
+      sign_up_form: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
     }
     return colors[type] || "bg-slate-500/20 text-slate-400 border-slate-500/30"
   }
@@ -232,7 +240,11 @@ export default function CustomerInteractionsAdmin() {
                 className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent/50"
               >
                 <option value="all">All Interaction Types</option>
+                <option value="page_view">Page Views</option>
+                <option value="product_view">Product Views</option>
                 <option value="contact_form">Contact Forms</option>
+                <option value="tester_request_form">Tester Requests</option>
+                <option value="newsletter">Newsletter</option>
                 <option value="checkout">Checkouts</option>
                 <option value="cart_add">Cart Additions</option>
                 <option value="cart_remove">Cart Removals</option>

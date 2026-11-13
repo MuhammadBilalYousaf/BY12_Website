@@ -24,6 +24,8 @@ export interface Product {
   stock: number
   description?: string
   imageUrl?: string
+  modelUrl?: string
+  modelSize?: number
   images?: string[]
   status: "Active" | "Out of Stock"
   featured: boolean
@@ -35,6 +37,13 @@ export interface Product {
   createdAt: Date
   updatedAt: Date
   altText?: string
+  fragranceLine?: string
+  fragranceNotes?: {
+    top: string[]
+    middle: string[]
+    base: string[]
+  }
+  fragranceIngredients?: string[]
 }
 
 export function useProducts() {

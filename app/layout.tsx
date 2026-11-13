@@ -6,6 +6,7 @@ import { AuthProvider, CartProvider, AdminProvider, WishlistProvider } from "@/l
 import { Toaster } from "@/components/ui/toaster"
 import { OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo-schemas"
 import { PageTransition } from "@/components/page-transition"
+import VisitorTracker from "@/components/visitor-tracker"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bilalyousaf12.store"),
@@ -14,7 +15,11 @@ export const metadata: Metadata = {
     template: "%s | BY12 Perfumes"
   },
   description: "Discover BY12's exclusive collection of luxury perfumes for men and women. Authentic fragrances, premium quality, and fast delivery across Pakistan.",
-  keywords: ["perfumes", "luxury perfumes", "fragrances", "BY12", "perfume Pakistan", "men perfumes", "women perfumes", "unisex perfumes", "buy perfumes online"],
+  icons: {
+    icon: "/tab_icon.png",
+    apple: "/apple-touch-icon.png",
+  },
+  keywords: ["perfumes", "luxury perfumes", "fragrances", "bilalyousaf12", "BY12", "perfume Pakistan", "men perfumes", "women perfumes", "unisex perfumes", "buy perfumes online"],
   authors: [{ name: "BY12 Perfumes" }],
   creator: "BY12 Perfumes",
   publisher: "BY12 Perfumes",
@@ -83,6 +88,7 @@ export default function RootLayout({
             <AdminProvider>
               <CartProvider>
                 <WishlistProvider>
+                  <VisitorTracker />
                   <div id="main-content">
                     <PageTransition>
                       {children}

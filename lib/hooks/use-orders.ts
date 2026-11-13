@@ -103,57 +103,78 @@ export function useOrders() {
           
           if (productSnap.exists()) {
             const productData = productSnap.data()
-            const sizeVariants = productData.sizeVariants || []
+            const isTester = productData.isTester === true
             
-            console.log(`📋 Product has ${sizeVariants.length} size variants:`, sizeVariants)
-            
-            // Check if this product has size variants and a size was selected
-            if (sizeVariants.length > 0 && item.selectedSize !== undefined && item.selectedSize !== null) {
-              // Update stock for the specific size variant
-              let foundVariant = false
-              const updatedVariants = sizeVariants.map((variant: { size: number; price: number; stock: number }) => {
-                // Compare as numbers to handle type mismatches
-                if (Number(variant.size) === Number(item.selectedSize)) {
-                  foundVariant = true
-                  const newStock = Math.max(0, (variant.stock || 0) - item.quantity)
-                  console.log(`✅ Matched size ${item.selectedSize}ml: stock ${variant.stock} → ${newStock}`)
-                  return { ...variant, stock: newStock }
-                }
-                return variant
-              })
+            if (isTester) {
+              // Handle tester quantity
+              console.log(`🧪 TESTER Product: ${item.name}`)
+              const currentTesterQty = productData.testerQuantity || 0
+              const newTesterQty = Math.max(0, currentTesterQty - item.quantity)
               
-              if (!foundVariant) {
-                console.log(`⚠️ No matching variant found for size ${item.selectedSize}ml`)
-              }
-              
-              // Calculate total stock from all variants
-              const totalStock = updatedVariants.reduce((sum: number, v: { stock: number }) => sum + (v.stock || 0), 0)
-              
-              console.log(`📊 New total stock: ${totalStock}`)
+              console.log(`✅ Tester quantity: ${currentTesterQty} → ${newTesterQty}`)
               
               await updateDoc(productRef, {
-                sizeVariants: updatedVariants,
-                stock: totalStock,
-                inStock: totalStock > 0,
-                status: totalStock > 0 ? "Active" : "Out of Stock",
+                testerQuantity: newTesterQty,
+                inStock: newTesterQty > 0,
+                status: newTesterQty > 0 ? "Active" : "Out of Stock",
                 updatedAt: serverTimestamp(),
               })
               
-              console.log(`✅ Stock updated successfully for ${item.name}`)
+              console.log(`✅ Tester quantity updated successfully for ${item.name}`)
             } else {
-              console.log(`⚠️ No size variants or no selectedSize, using fallback stock update`)
-              // Fallback: Update overall stock for products without size variants
-              const currentStock = productData.stock || 0
-              const newStock = Math.max(0, currentStock - item.quantity)
+              // Handle regular products with size variants
+              const sizeVariants = productData.sizeVariants || []
               
-              await updateDoc(productRef, {
-                stock: newStock,
-                inStock: newStock > 0,
-                status: newStock > 0 ? "Active" : "Out of Stock",
-                updatedAt: serverTimestamp(),
-              })
+              console.log(`📋 Product has ${sizeVariants.length} size variants:`, sizeVariants)
               
-              console.log(`✅ Updated stock for ${item.name}: ${currentStock} → ${newStock}`)
+              // Check if this product has size variants and a size was selected
+              if (sizeVariants.length > 0 && item.selectedSize !== undefined && item.selectedSize !== null) {
+                // Update stock for the specific size variant
+                let foundVariant = false
+                const updatedVariants = sizeVariants.map((variant: { size: number; price: number; stock: number }) => {
+                  // Compare as numbers to handle type mismatches
+                  if (Number(variant.size) === Number(item.selectedSize)) {
+                    foundVariant = true
+                    const newStock = Math.max(0, (variant.stock || 0) - item.quantity)
+                    console.log(`✅ Matched size ${item.selectedSize}ml: stock ${variant.stock} → ${newStock}`)
+                    return { ...variant, stock: newStock }
+                  }
+                  return variant
+                })
+                
+                if (!foundVariant) {
+                  console.log(`⚠️ No matching variant found for size ${item.selectedSize}ml`)
+                }
+                
+                // Calculate total stock from all variants
+                const totalStock = updatedVariants.reduce((sum: number, v: { stock: number }) => sum + (v.stock || 0), 0)
+                
+                console.log(`📊 New total stock: ${totalStock}`)
+                
+                await updateDoc(productRef, {
+                  sizeVariants: updatedVariants,
+                  stock: totalStock,
+                  inStock: totalStock > 0,
+                  status: totalStock > 0 ? "Active" : "Out of Stock",
+                  updatedAt: serverTimestamp(),
+                })
+                
+                console.log(`✅ Stock updated successfully for ${item.name}`)
+              } else {
+                console.log(`⚠️ No size variants or no selectedSize, using fallback stock update`)
+                // Fallback: Update overall stock for products without size variants
+                const currentStock = productData.stock || 0
+                const newStock = Math.max(0, currentStock - item.quantity)
+                
+                await updateDoc(productRef, {
+                  stock: newStock,
+                  inStock: newStock > 0,
+                  status: newStock > 0 ? "Active" : "Out of Stock",
+                  updatedAt: serverTimestamp(),
+                })
+                
+                console.log(`✅ Updated stock for ${item.name}: ${currentStock} → ${newStock}`)
+              }
             }
           } else {
             console.log(`❌ Product not found: ${item.id}`)
@@ -189,45 +210,66 @@ export function useOrders() {
             
             if (productSnap.exists()) {
               const productData = productSnap.data()
-              const sizeVariants = productData.sizeVariants || []
+              const isTester = productData.isTester === true
               
-              // Check if this product has size variants and a size was selected
-              if (sizeVariants.length > 0 && item.selectedSize !== undefined && item.selectedSize !== null) {
-                // Restore stock for the specific size variant
-                const updatedVariants = sizeVariants.map((variant: { size: number; price: number; stock: number }) => {
-                  if (Number(variant.size) === Number(item.selectedSize)) {
-                    const newStock = (variant.stock || 0) + item.quantity
-                    console.log(`✅ Restored stock for ${item.name} (${item.selectedSize}ml): ${variant.stock} → ${newStock}`)
-                    return { ...variant, stock: newStock }
-                  }
-                  return variant
-                })
+              if (isTester) {
+                // Restore tester quantity
+                console.log(`🧪 TESTER Product: ${item.name}`)
+                const currentTesterQty = productData.testerQuantity || 0
+                const newTesterQty = currentTesterQty + item.quantity
                 
-                // Calculate total stock from all variants
-                const totalStock = updatedVariants.reduce((sum: number, v: { stock: number }) => sum + (v.stock || 0), 0)
+                console.log(`✅ Restored tester quantity: ${currentTesterQty} → ${newTesterQty}`)
                 
                 await updateDoc(productRef, {
-                  sizeVariants: updatedVariants,
-                  stock: totalStock,
-                  inStock: totalStock > 0,
-                  status: totalStock > 0 ? "Active" : "Out of Stock",
-                  updatedAt: serverTimestamp(),
-                })
-                
-                console.log(`📊 New total stock after restore: ${totalStock}`)
-              } else {
-                // Fallback: Restore overall stock for products without size variants
-                const currentStock = productData.stock || 0
-                const newStock = currentStock + item.quantity
-                
-                await updateDoc(productRef, {
-                  stock: newStock,
+                  testerQuantity: newTesterQty,
                   inStock: true,
                   status: "Active",
                   updatedAt: serverTimestamp(),
                 })
                 
-                console.log(`✅ Restored stock for ${item.name}: ${currentStock} → ${newStock}`)
+                console.log(`✅ Tester quantity restored successfully for ${item.name}`)
+              } else {
+                // Restore regular product stock with size variants
+                const sizeVariants = productData.sizeVariants || []
+                
+                // Check if this product has size variants and a size was selected
+                if (sizeVariants.length > 0 && item.selectedSize !== undefined && item.selectedSize !== null) {
+                  // Restore stock for the specific size variant
+                  const updatedVariants = sizeVariants.map((variant: { size: number; price: number; stock: number }) => {
+                    if (Number(variant.size) === Number(item.selectedSize)) {
+                      const newStock = (variant.stock || 0) + item.quantity
+                      console.log(`✅ Restored stock for ${item.name} (${item.selectedSize}ml): ${variant.stock} → ${newStock}`)
+                      return { ...variant, stock: newStock }
+                    }
+                    return variant
+                  })
+                  
+                  // Calculate total stock from all variants
+                  const totalStock = updatedVariants.reduce((sum: number, v: { stock: number }) => sum + (v.stock || 0), 0)
+                  
+                  await updateDoc(productRef, {
+                    sizeVariants: updatedVariants,
+                    stock: totalStock,
+                    inStock: totalStock > 0,
+                    status: totalStock > 0 ? "Active" : "Out of Stock",
+                    updatedAt: serverTimestamp(),
+                  })
+                  
+                  console.log(`📊 New total stock after restore: ${totalStock}`)
+                } else {
+                  // Fallback: Restore overall stock for products without size variants
+                  const currentStock = productData.stock || 0
+                  const newStock = currentStock + item.quantity
+                  
+                  await updateDoc(productRef, {
+                    stock: newStock,
+                    inStock: true,
+                    status: "Active",
+                    updatedAt: serverTimestamp(),
+                  })
+                  
+                  console.log(`✅ Restored stock for ${item.name}: ${currentStock} → ${newStock}`)
+                }
               }
             }
           } catch (stockError) {

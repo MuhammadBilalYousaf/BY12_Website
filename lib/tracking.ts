@@ -1,14 +1,33 @@
 import { db } from "@/lib/firebase"
-import { collection, addDoc, updateDoc, doc, query, where, getDocs, serverTimestamp, increment, QueryConstraint } from "firebase/firestore"
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  query,
+  where,
+  getDocs,
+  serverTimestamp,
+  limit,
+} from "firebase/firestore"
 import { CustomerInteraction } from "@/lib/types"
 
 const GUEST_ID_KEY = "guest_session_id"
 
+export type TrackableFormType =
+  | "contact_form"
+  | "checkout"
+  | "tester_request_form"
+  | "newsletter"
+  | "sign_up_form"
+
+export type InteractionType = CustomerInteraction["interactionType"]
+
 /**
  * Remove undefined values from an object for Firestore compatibility
  */
-function cleanUndefinedValues(obj: any): any {
-  const cleaned: any = {}
+function cleanUndefinedValues(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {}
   for (const key in obj) {
     if (obj[key] !== undefined) {
       cleaned[key] = obj[key]
@@ -17,15 +36,19 @@ function cleanUndefinedValues(obj: any): any {
   return cleaned
 }
 
+function normalizeEmail(email?: string | null): string {
+  return (email || "").trim().toLowerCase()
+}
+
 /**
  * Get or create a guest session ID for tracking guest users
  */
 export function getOrCreateGuestId(): string {
   if (typeof window === "undefined") return ""
-  
+
   let guestId = localStorage.getItem(GUEST_ID_KEY)
   if (!guestId) {
-    guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    guestId = `guest_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
     localStorage.setItem(GUEST_ID_KEY, guestId)
   }
   return guestId
@@ -39,32 +62,86 @@ export function clearGuestId(): void {
   localStorage.removeItem(GUEST_ID_KEY)
 }
 
+function getClientMeta() {
+  if (typeof window === "undefined") {
+    return { userAgent: undefined, referrer: undefined }
+  }
+  return {
+    userAgent: navigator.userAgent,
+    referrer: document.referrer || undefined,
+  }
+}
+
+/**
+ * Find an open (non-converted preferred) interaction for this visitor + type.
+ * Uses single-field queries to avoid missing Firestore composite indexes.
+ */
+async function findOpenInteraction(
+  interactionType: string,
+  email?: string,
+  guestSessionId?: string
+): Promise<{ id: string; data: CustomerInteraction } | null> {
+  const interactionsRef = collection(db, "customerInteractions")
+  const normalized = normalizeEmail(email)
+
+  try {
+    if (normalized) {
+      const byEmail = await getDocs(
+        query(interactionsRef, where("email", "==", normalized), limit(25))
+      )
+      const matches = byEmail.docs
+        .map((d) => ({ id: d.id, data: d.data() as CustomerInteraction }))
+        .filter((d) => d.data.interactionType === interactionType)
+      if (matches.length > 0) {
+        const open = matches.find((m) => !m.data.converted)
+        return open || matches[0]
+      }
+    }
+
+    if (guestSessionId) {
+      const byGuest = await getDocs(
+        query(interactionsRef, where("guestSessionId", "==", guestSessionId), limit(25))
+      )
+      const matches = byGuest.docs
+        .map((d) => ({ id: d.id, data: d.data() as CustomerInteraction }))
+        .filter((d) => d.data.interactionType === interactionType)
+      if (matches.length > 0) {
+        const open = matches.find((m) => !m.data.converted)
+        return open || matches[0]
+      }
+    }
+  } catch (error) {
+    console.error("Error finding open interaction:", error)
+  }
+
+  return null
+}
+
 /**
  * Link all guest interactions to a customer email
- * Call this when a guest provides their email (checkout or signup)
  */
 export async function linkGuestInteractionsToEmail(email: string, guestId?: string): Promise<void> {
   try {
-    const targetGuestId = guestId || (typeof window !== "undefined" ? localStorage.getItem(GUEST_ID_KEY) : null)
+    const targetGuestId =
+      guestId || (typeof window !== "undefined" ? localStorage.getItem(GUEST_ID_KEY) : null)
     if (!targetGuestId) return
 
+    const normalized = normalizeEmail(email)
+    if (!normalized) return
+
     const interactionsRef = collection(db, "customerInteractions")
-    const q = query(
-      interactionsRef,
-      where("guestSessionId", "==", targetGuestId)
-    ) as any
-    
-    const snapshot = await getDocs(q)
-    
-    for (const doc of snapshot.docs) {
-      await updateDoc(doc.ref, {
-        email: email.toLowerCase(),
-        guestSessionId: "", // Clear guest ID after linking
+    const snapshot = await getDocs(
+      query(interactionsRef, where("guestSessionId", "==", targetGuestId))
+    )
+
+    for (const snap of snapshot.docs) {
+      await updateDoc(snap.ref, {
+        email: normalized,
         updatedAt: serverTimestamp(),
       })
     }
 
-    console.log(`Linked ${snapshot.docs.length} guest interactions to email: ${email}`)
+    console.log(`Linked ${snapshot.docs.length} guest interactions to email: ${normalized}`)
   } catch (error) {
     console.error("Error linking guest interactions:", error)
   }
@@ -72,15 +149,18 @@ export async function linkGuestInteractionsToEmail(email: string, guestId?: stri
 
 /**
  * Log a customer interaction to Firestore
- * Used for tracking contact forms, checkout, cart, signups, etc.
  */
 export async function logCustomerInteraction(
   interaction: Omit<CustomerInteraction, "id" | "createdAt" | "updatedAt">
 ): Promise<string> {
   try {
     const interactionsRef = collection(db, "customerInteractions")
+    const meta = getClientMeta()
     const cleanedData = cleanUndefinedValues({
       ...interaction,
+      email: normalizeEmail(interaction.email) || interaction.email || "",
+      userAgent: interaction.userAgent || meta.userAgent,
+      referrer: interaction.referrer || meta.referrer,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
@@ -95,7 +175,6 @@ export async function logCustomerInteraction(
 
 /**
  * Update an existing customer interaction
- * Used when adding more data to an ongoing interaction
  */
 export async function updateCustomerInteraction(
   interactionId: string,
@@ -105,10 +184,10 @@ export async function updateCustomerInteraction(
     const interactionRef = doc(db, "customerInteractions", interactionId)
     const cleanedData = cleanUndefinedValues({
       ...updates,
+      ...(updates.email !== undefined ? { email: normalizeEmail(updates.email) } : {}),
       updatedAt: serverTimestamp(),
     })
     await updateDoc(interactionRef, cleanedData)
-    console.log("Customer interaction updated:", interactionId)
   } catch (error) {
     console.error("Error updating customer interaction:", error)
     throw error
@@ -116,83 +195,134 @@ export async function updateCustomerInteraction(
 }
 
 /**
- * Track form field changes (for contact form, checkout, etc.)
- * Logs when a user fills in a field
- * Works for both authenticated users and guests
+ * Track form field changes (typing) for guests and signed-in users.
  */
 export async function trackFormFieldChange(
   email: string,
   fieldName: string,
   fieldValue: string | number | boolean,
-  interactionType: "contact_form" | "checkout",
+  interactionType: TrackableFormType,
   customerId?: string,
   guestSessionId?: string
 ): Promise<void> {
   try {
-    // Use email if available, otherwise use guest session ID
-    const identifier = email || guestSessionId
+    const guestId = guestSessionId || (!email ? getOrCreateGuestId() : undefined)
+    const identifier = normalizeEmail(email) || guestId
     if (!identifier) return
 
-    // Check if there's an existing interaction for this email/guest and type
-    const interactionsRef = collection(db, "customerInteractions")
-    
-    let q
-    if (email) {
-      q = query(
-        interactionsRef,
-        where("email", "==", email),
-        where("interactionType", "==", interactionType)
-      )
-    } else if (guestSessionId) {
-      q = query(
-        interactionsRef,
-        where("guestSessionId", "==", guestSessionId),
-        where("interactionType", "==", interactionType)
-      )
-    } else {
-      return
-    }
+    // Don't store empty values as "filled"
+    const stringValue = typeof fieldValue === "string" ? fieldValue.trim() : fieldValue
+    if (stringValue === "" || stringValue === null || stringValue === undefined) return
 
-    const existingDocs = await getDocs(q)
+    const existing = await findOpenInteraction(interactionType, email, guestId)
 
-    if (existingDocs.size > 0) {
-      // Update existing interaction
-      const existingDoc = existingDocs.docs[0]
-      const existingData = existingDoc.data() as CustomerInteraction
-      
-      const fieldsFilled = existingData.fieldsFilled || {}
-      fieldsFilled[fieldName] = fieldValue
-      
+    // If the user is typing their email, capture it on the interaction
+    const typedEmail =
+      fieldName.toLowerCase().includes("email") && typeof fieldValue === "string"
+        ? normalizeEmail(fieldValue)
+        : ""
+
+    if (existing) {
+      const fieldsFilled = { ...(existing.data.fieldsFilled || {}) }
+      fieldsFilled[fieldName] = stringValue
       const fieldNames = Object.keys(fieldsFilled)
-      const fieldsCount = fieldNames.length
 
       const updateData = cleanUndefinedValues({
         fieldsFilled,
         fieldNames,
-        fieldsCount,
+        fieldsCount: fieldNames.length,
         lastActivityAt: serverTimestamp(),
+        ...(typedEmail ? { email: typedEmail } : {}),
+        ...(customerId ? { customerId } : {}),
+        ...(guestId && !existing.data.guestSessionId ? { guestSessionId: guestId } : {}),
       })
 
-      await updateDoc(doc(db, "customerInteractions", existingDoc.id), updateData)
+      await updateDoc(doc(db, "customerInteractions", existing.id), updateData)
     } else {
-      // Create new interaction
-      const newInteraction = {
-        email,
+      await logCustomerInteraction({
+        email: typedEmail || normalizeEmail(email) || "",
         customerId,
-        guestSessionId,
-        interactionType,
-        fieldsFilled: { [fieldName]: fieldValue },
+        guestSessionId: guestId,
+        interactionType: interactionType as CustomerInteraction["interactionType"],
+        interactionSource:
+          interactionType === "checkout"
+            ? "checkout_form"
+            : interactionType === "contact_form"
+              ? "contact_form"
+              : undefined,
+        fieldsFilled: { [fieldName]: stringValue },
         fieldNames: [fieldName],
         fieldsCount: 1,
         startedAt: serverTimestamp(),
         lastActivityAt: serverTimestamp(),
-      }
-
-      await logCustomerInteraction(newInteraction)
+      })
     }
   } catch (error) {
     console.error("Error tracking form field change:", error)
-    // Don't throw - tracking should not break user interactions
+  }
+}
+
+/**
+ * Mark a form interaction as submitted / converted
+ */
+export async function trackFormSubmission(options: {
+  email: string
+  name?: string
+  interactionType: TrackableFormType
+  messageId?: string
+  customerId?: string
+  guestSessionId?: string
+  conversionType?: CustomerInteraction["conversionType"]
+  extra?: Partial<CustomerInteraction>
+}): Promise<void> {
+  try {
+    const {
+      email,
+      name,
+      interactionType,
+      messageId,
+      customerId,
+      guestSessionId,
+      conversionType = "contact_submission",
+      extra,
+    } = options
+
+    const guestId = guestSessionId || getOrCreateGuestId()
+    const normalized = normalizeEmail(email)
+    const existing = await findOpenInteraction(interactionType, normalized, guestId)
+
+    if (existing) {
+      await updateDoc(
+        doc(db, "customerInteractions", existing.id),
+        cleanUndefinedValues({
+          converted: true,
+          conversionType,
+          notes: messageId,
+          name: name || existing.data.name,
+          email: normalized || existing.data.email || "",
+          customerId: customerId || existing.data.customerId,
+          guestSessionId: guestId,
+          lastActivityAt: serverTimestamp(),
+          ...extra,
+        })
+      )
+    } else {
+      await logCustomerInteraction({
+        email: normalized || "",
+        name,
+        customerId,
+        guestSessionId: guestId,
+        interactionType: interactionType as CustomerInteraction["interactionType"],
+        converted: true,
+        conversionType,
+        notes: messageId,
+        startedAt: serverTimestamp(),
+        lastActivityAt: serverTimestamp(),
+        ...extra,
+      })
+    }
+  } catch (error) {
+    console.error("Error tracking form submission:", error)
   }
 }
 
@@ -209,11 +339,13 @@ export async function trackCartOperation(
   guestSessionId?: string
 ): Promise<void> {
   try {
+    const guestId = guestSessionId || (!email ? getOrCreateGuestId() : undefined)
     await logCustomerInteraction({
-      email,
+      email: normalizeEmail(email) || "",
       customerId,
-      guestSessionId,
+      guestSessionId: guestId,
       interactionType: operationType,
+      interactionSource: "cart",
       productId,
       productName,
       quantity,
@@ -222,24 +354,95 @@ export async function trackCartOperation(
     })
   } catch (error) {
     console.error("Error tracking cart operation:", error)
-    // Don't throw - tracking should not break user interactions
+  }
+}
+
+/**
+ * Track product page views
+ */
+export async function trackProductView(
+  productId: string,
+  productName: string,
+  email?: string,
+  customerId?: string
+): Promise<void> {
+  try {
+    const guestId = !email ? getOrCreateGuestId() : undefined
+    await logCustomerInteraction({
+      email: normalizeEmail(email) || "",
+      customerId,
+      guestSessionId: guestId,
+      interactionType: "product_view",
+      interactionSource: "product_page",
+      productId,
+      productName,
+      startedAt: serverTimestamp(),
+      lastActivityAt: serverTimestamp(),
+    })
+  } catch (error) {
+    console.error("Error tracking product view:", error)
+  }
+}
+
+/**
+ * Track generic page / visitor activity
+ */
+export async function trackPageView(path: string, email?: string, customerId?: string): Promise<void> {
+  try {
+    const guestId = getOrCreateGuestId()
+    await logCustomerInteraction({
+      email: normalizeEmail(email) || "",
+      customerId,
+      guestSessionId: guestId,
+      interactionType: "page_view",
+      notes: path,
+      startedAt: serverTimestamp(),
+      lastActivityAt: serverTimestamp(),
+    })
+  } catch (error) {
+    console.error("Error tracking page view:", error)
+  }
+}
+
+/**
+ * Track newsletter subscribe attempts / completions
+ */
+export async function trackNewsletter(
+  email: string,
+  converted: boolean,
+  guestSessionId?: string
+): Promise<void> {
+  try {
+    const guestId = guestSessionId || getOrCreateGuestId()
+    const normalized = normalizeEmail(email)
+    if (!normalized) return
+
+    if (converted) {
+      await trackFormSubmission({
+        email: normalized,
+        interactionType: "newsletter",
+        guestSessionId: guestId,
+        conversionType: "contact_submission",
+      })
+    } else {
+      await trackFormFieldChange(normalized, "email", normalized, "newsletter", undefined, guestId)
+    }
+  } catch (error) {
+    console.error("Error tracking newsletter:", error)
   }
 }
 
 /**
  * Track user sign-up
  */
-export async function trackSignUp(
-  email: string,
-  name: string,
-  userId: string
-): Promise<void> {
+export async function trackSignUp(email: string, name: string, userId: string): Promise<void> {
   try {
     await logCustomerInteraction({
-      email,
+      email: normalizeEmail(email),
       name,
       customerId: userId,
       interactionType: "sign_up",
+      interactionSource: "sign_up_form",
       converted: true,
       conversionType: "signup_completed",
       startedAt: serverTimestamp(),
@@ -247,7 +450,6 @@ export async function trackSignUp(
     })
   } catch (error) {
     console.error("Error tracking sign-up:", error)
-    // Don't throw - tracking should not break user interactions
   }
 }
 
@@ -257,16 +459,16 @@ export async function trackSignUp(
 export async function trackSignIn(email: string, userId: string, name?: string): Promise<void> {
   try {
     await logCustomerInteraction({
-      email,
+      email: normalizeEmail(email),
       name,
       customerId: userId,
       interactionType: "sign_in",
+      interactionSource: "sign_in_form",
       startedAt: serverTimestamp(),
       lastActivityAt: serverTimestamp(),
     })
   } catch (error) {
     console.error("Error tracking sign-in:", error)
-    // Don't throw - tracking should not break user interactions
   }
 }
 
@@ -278,34 +480,34 @@ export async function trackOrderCompletion(
   orderId: string,
   orderTotal: number,
   customerId?: string,
-  paymentMethod?: string
+  paymentMethod?: string,
+  guestSessionId?: string
 ): Promise<void> {
   try {
-    // Check if there's an existing checkout interaction
-    const interactionsRef = collection(db, "customerInteractions")
-    const q = query(
-      interactionsRef,
-      where("email", "==", email),
-      where("interactionType", "==", "checkout")
-    )
-    const existingDocs = await getDocs(q)
+    const normalized = normalizeEmail(email)
+    const guestId = guestSessionId || getOrCreateGuestId()
+    const existing = await findOpenInteraction("checkout", normalized, guestId)
 
-    if (existingDocs.size > 0) {
-      // Update the checkout interaction as converted
-      await updateDoc(doc(db, "customerInteractions", existingDocs.docs[0].id), {
-        converted: true,
-        conversionType: "order_completed",
-        orderId,
-        orderTotal,
-        paymentMethod,
-        checkoutStep: "completed",
-        lastActivityAt: serverTimestamp(),
-      })
+    if (existing) {
+      await updateDoc(
+        doc(db, "customerInteractions", existing.id),
+        cleanUndefinedValues({
+          converted: true,
+          conversionType: "order_completed",
+          orderId,
+          orderTotal,
+          paymentMethod,
+          checkoutStep: "completed",
+          email: normalized || existing.data.email || "",
+          customerId: customerId || existing.data.customerId,
+          lastActivityAt: serverTimestamp(),
+        })
+      )
     } else {
-      // Create new interaction (in case they checked out without filling tracked fields)
       await logCustomerInteraction({
-        email,
+        email: normalized || "",
         customerId,
+        guestSessionId: guestId,
         interactionType: "checkout",
         converted: true,
         conversionType: "order_completed",
@@ -319,56 +521,28 @@ export async function trackOrderCompletion(
     }
   } catch (error) {
     console.error("Error tracking order completion:", error)
-    // Don't throw - tracking should not break user interactions
   }
 }
 
 /**
- * Track contact form submission
+ * Track contact form submission (backward-compatible wrapper)
  */
 export async function trackContactSubmission(
   email: string,
   name: string,
   messageId: string,
-  customerId?: string
+  customerId?: string,
+  guestSessionId?: string
 ): Promise<void> {
-  try {
-    // Check if there's an existing contact form interaction
-    const interactionsRef = collection(db, "customerInteractions")
-    const q = query(
-      interactionsRef,
-      where("email", "==", email),
-      where("interactionType", "==", "contact_form")
-    )
-    const existingDocs = await getDocs(q)
-
-    if (existingDocs.size > 0) {
-      // Update the interaction as converted
-      await updateDoc(doc(db, "customerInteractions", existingDocs.docs[0].id), cleanUndefinedValues({
-        converted: true,
-        conversionType: "contact_submission",
-        notes: messageId,
-        customerId,
-        lastActivityAt: serverTimestamp(),
-      }))
-    } else {
-      // Create new interaction
-      await logCustomerInteraction({
-        email,
-        name,
-        customerId,
-        interactionType: "contact_form",
-        converted: true,
-        conversionType: "contact_submission",
-        notes: messageId,
-        startedAt: serverTimestamp(),
-        lastActivityAt: serverTimestamp(),
-      })
-    }
-  } catch (error) {
-    console.error("Error tracking contact submission:", error)
-    // Don't throw - tracking should not break user interactions
-  }
+  await trackFormSubmission({
+    email,
+    name,
+    interactionType: "contact_form",
+    messageId,
+    customerId,
+    guestSessionId,
+    conversionType: "contact_submission",
+  })
 }
 
 /**
@@ -377,12 +551,14 @@ export async function trackContactSubmission(
 export async function getCustomerInteractionsByEmail(email: string): Promise<CustomerInteraction[]> {
   try {
     const interactionsRef = collection(db, "customerInteractions")
-    const q = query(interactionsRef, where("email", "==", email))
-    const docs = await getDocs(q)
-    return docs.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    } as CustomerInteraction))
+    const docs = await getDocs(query(interactionsRef, where("email", "==", normalizeEmail(email))))
+    return docs.docs.map(
+      (d) =>
+        ({
+          id: d.id,
+          ...d.data(),
+        }) as CustomerInteraction
+    )
   } catch (error) {
     console.error("Error fetching customer interactions:", error)
     return []
@@ -397,17 +573,16 @@ export async function getAllCustomerInteractions(
 ): Promise<CustomerInteraction[]> {
   try {
     const interactionsRef = collection(db, "customerInteractions")
-    let q
-    if (interactionType) {
-      q = query(interactionsRef, where("interactionType", "==", interactionType))
-    } else {
-      q = query(interactionsRef)
-    }
-    const docs = await getDocs(q)
-    return docs.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    } as CustomerInteraction))
+    const docs = interactionType
+      ? await getDocs(query(interactionsRef, where("interactionType", "==", interactionType)))
+      : await getDocs(interactionsRef)
+    return docs.docs.map(
+      (d) =>
+        ({
+          id: d.id,
+          ...d.data(),
+        }) as CustomerInteraction
+    )
   } catch (error) {
     console.error("Error fetching all customer interactions:", error)
     return []

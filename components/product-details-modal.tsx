@@ -20,11 +20,20 @@ export default function ProductDetailsModal({ product, onClose }: ProductDetails
   const [showToast, setShowToast] = useState(false)
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem(product)
+    // For testers, only allow adding once (quantity forced to 1)
+    if (product.isTester === true) {
+      const testerSize = (product as any).testerSize || 5
+      addItem(product, 1, testerSize, product.price)
+      setShowToast(true)
+      setQuantity(1)
+    } else {
+      // For regular products, add multiple quantities
+      for (let i = 0; i < quantity; i++) {
+        addItem(product)
+      }
+      setShowToast(true)
+      setQuantity(1)
     }
-    setShowToast(true)
-    setQuantity(1)
   }
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -113,29 +122,42 @@ export default function ProductDetailsModal({ product, onClose }: ProductDetails
                 </div>
 
                 {/* Quantity & Add to Cart */}
-                <div className="flex gap-4 mb-8">
-                  <div className="flex items-center gap-3 bg-muted rounded-lg p-2">
+                <div className="flex gap-4 mb-8 flex-col">
+                  {product.isTester === true && (
+                    <div className="px-4 py-2 bg-purple-500/20 border border-purple-400/50 text-purple-300 rounded-lg text-sm font-medium">
+                      ℹ️ Each tester can only be ordered once per variant
+                    </div>
+                  )}
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-3 bg-muted rounded-lg p-2">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={product.isTester === true}
+                        className="w-10 h-10 flex items-center justify-center hover:bg-border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        −
+                      </button>
+                      <span className="w-8 text-center font-semibold">{quantity}</span>
+                      <button
+                        onClick={() => {
+                          if (product.isTester !== true) {
+                            setQuantity(quantity + 1)
+                          }
+                        }}
+                        disabled={product.isTester === true}
+                        className="w-10 h-10 flex items-center justify-center hover:bg-border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-10 h-10 flex items-center justify-center hover:bg-border rounded"
+                      onClick={handleAddToCart}
+                      className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
                     >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-semibold">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-10 h-10 flex items-center justify-center hover:bg-border rounded"
-                    >
-                      +
+                      <ShoppingCart size={20} />
+                      Add to Cart
                     </button>
                   </div>
-                  <button
-                    onClick={handleAddToCart}
-                    className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
-                  >
-                    <ShoppingCart size={20} />
-                    Add to Cart
-                  </button>
                 </div>
 
                 {/* Actions */}

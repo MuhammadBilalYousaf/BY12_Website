@@ -150,11 +150,52 @@
 /* Luxury animations */
 @layer utilities {
   .hover-lift {
-    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+    @apply transition-transform duration-300 ease-out hover:-translate-y-2;
   }
 
   .hover-gold {
     @apply transition-colors duration-300 hover:text-accent;
+  }
+
+  /* Primary CTA micro-interaction (transform + opacity only where possible) */
+  .btn-premium {
+    @apply transition-[transform,box-shadow,background-color,color] duration-300 ease-out;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+    @apply hover:shadow-lg hover:shadow-accent/25;
+  }
+
+  .btn-press {
+    @apply transition-transform duration-200 ease-out active:scale-95;
+  }
+
+  .nav-icon-premium {
+    @apply transition-[transform,color,background-color] duration-200 ease-out;
+    @apply hover:scale-110 active:scale-95;
+  }
+
+  .img-fade-in {
+    opacity: 0;
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    filter: blur(4px);
+  }
+
+  .img-fade-in.is-loaded {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  .product-card-premium {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .product-card-premium:hover {
+    transform: translateY(-7px);
+    box-shadow:
+      0 18px 40px -12px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(212, 175, 55, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
   @keyframes home-marquee {
@@ -181,6 +222,37 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
+  }
+}
+
+/* Accessibility: reduce non-essential motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .home-marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .product-card-premium:hover {
+    transform: none;
+  }
+
+  .btn-premium:hover,
+  .nav-icon-premium:hover {
+    transform: none;
+  }
+
+  .img-fade-in {
+    opacity: 1;
+    filter: none;
   }
 }
 

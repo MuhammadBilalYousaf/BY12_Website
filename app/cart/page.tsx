@@ -147,7 +147,7 @@ export default function CartPage() {
               <p className="text-slate-400 mb-6">Add some products to get started!</p>
               <Link
                 href="/shop"
-                className="inline-block px-6 py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 transition shadow-lg shadow-accent/25"
+                className="inline-block px-6 py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 btn-premium shadow-lg shadow-accent/25"
               >
                 Start Shopping
               </Link>
@@ -201,24 +201,31 @@ export default function CartPage() {
 
                       <div className="flex items-center justify-between gap-4 flex-wrap">
                         {/* Quantity Controls */}
-                        <div className="flex items-center border border-slate-600 rounded-lg">
+                        <div className="flex items-center border border-slate-600 rounded-lg overflow-hidden">
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedSize)}
                             disabled={item.quantity === 1}
-                            className="p-2 hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                            className="p-2 hover:bg-slate-700 transition-[background-color,transform] duration-200 btn-press disabled:opacity-50 disabled:cursor-not-allowed text-white"
                             aria-label="Decrease quantity"
                           >
                             <Minus size={16} />
                           </button>
-                          <span className="px-4 font-semibold text-white">{item.quantity}</span>
+                          <span className="px-4 font-semibold text-white tabular-nums transition-opacity duration-200">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize)}
-                            className="p-2 hover:bg-slate-700 transition text-white"
+                            disabled={item.product.isTester === true}
+                            className="p-2 hover:bg-slate-700 transition-[background-color,transform] duration-200 btn-press disabled:opacity-50 disabled:cursor-not-allowed text-white"
                             aria-label="Increase quantity"
+                            title={item.product.isTester === true ? "Each tester can only be ordered once" : ""}
                           >
                             <Plus size={16} />
                           </button>
                         </div>
+
+                        {/* Tester Note */}
+                        {item.product.isTester === true && (
+                          <p className="text-xs text-purple-400 font-medium">Tester: 1 only</p>
+                        )}
 
                         {/* Price */}
                         <div className="flex items-center gap-4">
@@ -234,7 +241,7 @@ export default function CartPage() {
                           </div>
                           <button
                             onClick={() => removeItem(item.product.id, item.selectedSize)}
-                            className="p-2 hover:bg-red-500/20 rounded-lg transition text-red-400"
+                            className="p-2 hover:bg-red-500/20 rounded-lg transition-[background-color,transform] duration-200 btn-press text-red-400"
                             aria-label="Remove item"
                           >
                             <Trash2 size={18} />
@@ -353,7 +360,7 @@ export default function CartPage() {
 
                   <button
                     onClick={handleCheckout}
-                    className="w-full py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 transition mb-4 shadow-lg shadow-accent/25"
+                    className="w-full py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 btn-premium mb-4 shadow-lg shadow-accent/25"
                   >
                     Proceed to Checkout
                   </button>

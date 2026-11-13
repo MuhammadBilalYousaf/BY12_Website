@@ -15,6 +15,10 @@ interface DealModalFormData {
   endDate: string
   isActive: boolean
   featured: boolean
+  metaTitle: string
+  metaDescription: string
+  keywords: string
+  altText: string
 }
 
 interface DealModalProps {
@@ -36,6 +40,10 @@ const defaultFormData: DealModalFormData = {
   endDate: "",
   isActive: true,
   featured: false,
+  metaTitle: "",
+  metaDescription: "",
+  keywords: "",
+  altText: "",
 }
 
 export default function DealModal({ isOpen, onClose, onSave, deal, mode }: DealModalProps) {
@@ -72,6 +80,10 @@ export default function DealModal({ isOpen, onClose, onSave, deal, mode }: DealM
         endDate,
         isActive: deal.isActive,
         featured: !!deal.featured,
+        metaTitle: deal.metaTitle || "",
+        metaDescription: deal.metaDescription || "",
+        keywords: deal.keywords || "",
+        altText: deal.altText || "",
       })
     } else {
       setFormData(defaultFormData)
@@ -166,6 +178,10 @@ export default function DealModal({ isOpen, onClose, onSave, deal, mode }: DealM
       endDate: formData.endDate ? new Date(formData.endDate) : null,
       isActive: formData.isActive,
       featured: formData.featured,
+      metaTitle: formData.metaTitle.trim() || "",
+      metaDescription: formData.metaDescription.trim() || "",
+      keywords: formData.keywords.trim() || "",
+      altText: formData.altText.trim() || "",
     }
 
     setIsSaving(true)
@@ -378,6 +394,61 @@ export default function DealModal({ isOpen, onClose, onSave, deal, mode }: DealM
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
+            </div>
+
+            {/* SEO Section Divider */}
+            <div className="md:col-span-2 pt-4 border-t border-slate-600">
+              <h3 className="text-sm font-semibold text-gray-300 mb-4">SEO & Metadata (Optional)</h3>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Meta Title</label>
+              <input
+                type="text"
+                value={formData.metaTitle}
+                onChange={(e) => setFormData({ ...formData, metaTitle: e.target.value })}
+                placeholder="e.g., Summer Fragrance Sale - 50% Off"
+                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                maxLength={60}
+              />
+              <p className="text-xs text-gray-400 mt-1">{formData.metaTitle.length}/60 characters</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Meta Description</label>
+              <textarea
+                value={formData.metaDescription}
+                onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
+                placeholder="e.g., Discover our exclusive fragrance deals. Get premium perfumes at unbeatable prices."
+                rows={3}
+                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                maxLength={160}
+              />
+              <p className="text-xs text-gray-400 mt-1">{formData.metaDescription.length}/160 characters</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Keywords</label>
+              <input
+                type="text"
+                value={formData.keywords}
+                onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                placeholder="e.g., fragrance sale, perfume discount, summer deals"
+                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">Comma-separated keywords for search engines</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Image Alt Text</label>
+              <input
+                type="text"
+                value={formData.altText}
+                onChange={(e) => setFormData({ ...formData, altText: e.target.value })}
+                placeholder="e.g., Premium fragrances on sale"
+                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">Describes the main deal image for accessibility and SEO</p>
             </div>
 
             <div className="md:col-span-2">

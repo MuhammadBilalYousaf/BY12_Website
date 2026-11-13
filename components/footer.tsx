@@ -4,8 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Mail, Phone, MapPin, Facebook, Instagram, Send, Loader2, CheckCircle } from "lucide-react"
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { FadeInSection } from "@/components/animated-section"
+import { trackNewsletter, trackFormFieldChange, getOrCreateGuestId, linkGuestInteractionsToEmail } from "@/lib/tracking"
 
 export default function Footer() {
   const [email, setEmail] = useState("")
@@ -23,37 +23,33 @@ export default function Footer() {
     setLoading(true)
     setError("")
 
+    const guestId = getOrCreateGuestId()
+    // Track typing/intent before submit
+    trackFormFieldChange(email.toLowerCase(), "email", email.toLowerCase(), "newsletter", undefined, guestId).catch(() => {})
+
     try {
-      // Check if already subscribed (client-side Firestore)
-      const subscribersRef = collection(db, "newsletterSubscribers")
-      const q = query(subscribersRef, where("email", "==", email.toLowerCase()))
-      const existingSubscriber = await getDocs(q)
-
-      if (!existingSubscriber.empty) {
-        setError("This email is already subscribed to our newsletter")
-        setLoading(false)
-        return
-      }
-
-      // Add subscriber to Firestore (client-side)
-      await addDoc(subscribersRef, {
-        email: email.toLowerCase(),
-        subscribedAt: serverTimestamp(),
-        status: "active",
-      })
-
-      // Call API to send welcome email
+      // Call API to handle subscription and send welcome email
+      // API handles: duplicate check, adding to DB, and sending email
       const response = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, isNewSubscriber: true }),
       })
 
-      // Don't fail if email sending fails
+      const data = await response.json()
+
       if (!response.ok) {
-        console.warn("Welcome email could not be sent, but subscription was successful")
+        // API returned an error
+        setError(data.error || "Failed to subscribe. Please try again.")
+        setLoading(false)
+        return
       }
 
+      // Track successful subscription
+      await trackNewsletter(email.toLowerCase(), true, guestId).catch(() => {})
+      await linkGuestInteractionsToEmail(email.toLowerCase(), guestId).catch(() => {})
+
+      // Success
       setSuccess(true)
       setEmail("")
       setTimeout(() => setSuccess(false), 5000)
@@ -76,7 +72,7 @@ export default function Footer() {
       {/* Top Border Glow */}
       <div className="h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
 
-      <div className="max-w-7xl mx-auto px-4 py-16 relative z-10">
+      <FadeInSection className="max-w-7xl mx-auto px-4 py-16 relative z-10" amount={0.1} duration={0.7}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="lg:col-span-1">
@@ -209,7 +205,7 @@ export default function Footer() {
                     type="submit"
                     disabled={loading}
                     aria-label={loading ? "Subscribing..." : "Subscribe to newsletter"}
-                    className="px-4 py-3 bg-accent hover:bg-accent/90 text-slate-900 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 disabled:opacity-50"
+                    className="px-4 py-3 bg-accent hover:bg-accent/90 text-slate-900 rounded-xl font-semibold btn-premium disabled:opacity-50"
                   >
                     {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                   </button>
@@ -235,7 +231,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-      </div>
+      </FadeInSection>
     </footer>
   )
 }

@@ -6,7 +6,8 @@ import Link from "next/link"
 import Image from "next/image"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
-import { CheckCircle, Package, Truck, Mail, MapPin, CreditCard, Banknote, Calendar } from "lucide-react"
+import { CheckCircle, Package, Truck, Mail, MapPin, CreditCard, Banknote, Calendar, Star } from "lucide-react"
+import { FadeInSection, FadeInStagger, FadeInItem } from "@/components/animated-section"
 
 interface OrderItem {
   id: string
@@ -23,6 +24,7 @@ interface OrderDetails {
   subtotal: number
   discount: number
   tax: number
+  shipping: number
   total: number
   paymentMethod: "card" | "cod"
   appliedCoupon: string | null
@@ -90,7 +92,7 @@ export default function OrderConfirmationPage() {
       <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-12">
         <div className="max-w-4xl mx-auto px-4">
           {/* Success Header */}
-          <div className="text-center mb-8">
+          <FadeInSection className="text-center mb-8" variant="heading" blur>
             <div className="flex justify-center mb-4">
               <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center">
                 <CheckCircle size={48} className="text-green-400" />
@@ -102,11 +104,12 @@ export default function OrderConfirmationPage() {
             <p className="text-slate-400">
               Thank you for your purchase. Your order has been successfully placed.
             </p>
-          </div>
+          </FadeInSection>
 
           {/* Order Number & Date */}
-          <div 
+          <FadeInSection 
             className="rounded-2xl p-6 mb-6"
+            delay={0.1}
             style={{
               background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -125,14 +128,15 @@ export default function OrderConfirmationPage() {
                 </p>
               </div>
             </div>
-          </div>
+          </FadeInSection>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             {/* Order Items */}
             <div className="lg:col-span-2 space-y-6">
               {/* Items List */}
-              <div 
+              <FadeInSection 
                 className="rounded-xl p-6"
+                delay={0.15}
                 style={{
                   background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -163,11 +167,12 @@ export default function OrderConfirmationPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </FadeInSection>
 
               {/* Shipping Address */}
-              <div 
+              <FadeInSection 
                 className="rounded-xl p-6"
+                delay={0.2}
                 style={{
                   background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -198,11 +203,12 @@ export default function OrderConfirmationPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </FadeInSection>
 
               {/* Payment Method */}
-              <div 
+              <FadeInSection 
                 className="rounded-xl p-6"
+                delay={0.25}
                 style={{
                   background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -235,13 +241,14 @@ export default function OrderConfirmationPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </FadeInSection>
             </div>
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div 
+              <FadeInSection 
                 className="rounded-xl p-6 sticky top-4"
+                delay={0.2}
                 style={{
                   background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -311,32 +318,39 @@ export default function OrderConfirmationPage() {
                 <div className="space-y-3">
                   <Link
                     href="/shop"
-                    className="block w-full py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 transition text-center shadow-lg shadow-accent/25"
+                    className="block w-full py-3 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 btn-premium text-center shadow-lg shadow-accent/25"
                   >
                     Continue Shopping
                   </Link>
                   <Link
                     href="/"
-                    className="block w-full py-3 border-2 border-accent text-accent rounded-lg font-semibold hover:bg-accent/10 transition text-center"
+                    className="block w-full py-3 border-2 border-accent text-accent rounded-lg font-semibold hover:bg-accent/10 btn-premium text-center"
                   >
                     Back to Home
                   </Link>
+                  <Link
+                    href={`/track-order?orderId=${encodeURIComponent(orderDetails.orderId)}&email=${encodeURIComponent(orderDetails.shippingAddress.email)}`}
+                    className="block w-full py-3 border border-slate-600 text-white rounded-lg font-semibold hover:bg-slate-800 btn-premium text-center"
+                  >
+                    Track Order and Leave a Review
+                  </Link>
                 </div>
-              </div>
+              </FadeInSection>
             </div>
           </div>
 
           {/* What's Next Section */}
-          <div 
+          <FadeInSection 
             className="rounded-xl p-6"
+            delay={0.3}
             style={{
               background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
             }}
           >
             <h2 className="text-xl font-bold text-white mb-4">What happens next?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex gap-4">
+            <FadeInStagger className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FadeInItem className="flex gap-4">
                 <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Mail size={24} className="text-accent" />
                 </div>
@@ -346,8 +360,8 @@ export default function OrderConfirmationPage() {
                     You'll receive an email confirmation shortly
                   </p>
                 </div>
-              </div>
-              <div className="flex gap-4">
+              </FadeInItem>
+              <FadeInItem className="flex gap-4">
                 <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Package size={24} className="text-accent" />
                 </div>
@@ -357,8 +371,8 @@ export default function OrderConfirmationPage() {
                     We'll prepare your order for shipment
                   </p>
                 </div>
-              </div>
-              <div className="flex gap-4">
+              </FadeInItem>
+              <FadeInItem className="flex gap-4">
                 <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Truck size={24} className="text-accent" />
                 </div>
@@ -368,12 +382,23 @@ export default function OrderConfirmationPage() {
                     Track your order status via email updates
                   </p>
                 </div>
-              </div>
-            </div>
-          </div>
+              </FadeInItem>
+              <FadeInItem className="flex gap-4 md:col-span-3">
+                <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Star size={24} className="text-accent" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white mb-1">Leave a Review Later</h3>
+                  <p className="text-sm text-slate-400">
+                    Once your order is completed, use your order ID and email on the tracking page to review each item.
+                  </p>
+                </div>
+              </FadeInItem>
+            </FadeInStagger>
+          </FadeInSection>
 
           {/* Order Confirmation Email Notice */}
-          <div className="mt-6 text-center">
+          <FadeInSection className="mt-6 text-center" delay={0.35}>
             <p className="text-sm text-slate-400">
               A confirmation email has been sent to{" "}
               <span className="font-semibold text-white">
@@ -383,7 +408,7 @@ export default function OrderConfirmationPage() {
             <p className="text-xs text-slate-500 mt-2">
               Order ID: {orderDetails.orderId} • Need help? Contact our support team
             </p>
-          </div>
+          </FadeInSection>
         </div>
       </main>
       <Footer />

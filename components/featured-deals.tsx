@@ -38,7 +38,7 @@ export default function FeaturedDeals() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <FadeInSection className="text-center mb-12 md:mb-16">
+        <FadeInSection className="text-center mb-12 md:mb-16" variant="heading" blur>
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-full mb-6 text-red-300 text-sm font-semibold">
             <Flame size={16} /> Limited-Time Picks
           </span>
@@ -117,7 +117,7 @@ export default function FeaturedDeals() {
 
                         <Link
                           href={href}
-                          className="inline-flex w-full justify-center items-center px-4 py-2.5 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 transition"
+                          className="inline-flex w-full justify-center items-center px-4 py-2.5 bg-accent text-slate-900 rounded-lg font-semibold hover:bg-accent/90 btn-premium"
                         >
                           View Deal
                         </Link>

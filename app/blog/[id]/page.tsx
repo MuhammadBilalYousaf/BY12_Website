@@ -12,6 +12,7 @@ import Footer from "@/components/footer"
 import PageBreadcrumb from "@/components/page-breadcrumb"
 import { BlogPostSchema, BreadcrumbSchema } from "@/components/seo-schemas"
 import { useLikedBlogs } from "@/lib/hooks/use-liked-blogs"
+import { FadeInSection, FadeInStagger, FadeInItem } from "@/components/animated-section"
 
 interface BlogPost {
   id: string
@@ -125,17 +126,17 @@ export default function BlogPostPage() {
       <>
         <Navbar />
         <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-          <div className="text-center">
+          <FadeInSection className="text-center" variant="heading">
             <h1 className="text-4xl font-bold text-white mb-4">Article Not Found</h1>
             <p className="text-slate-400 mb-8">The article you're looking for doesn't exist.</p>
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-slate-900 rounded-full font-semibold hover:bg-accent/90 transition shadow-lg shadow-accent/25"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-slate-900 rounded-full font-semibold hover:bg-accent/90 btn-premium shadow-lg shadow-accent/25"
             >
               <ArrowLeft size={20} />
               Back to Blog
             </Link>
-          </div>
+          </FadeInSection>
         </div>
         <Footer />
       </>
@@ -198,7 +199,7 @@ export default function BlogPostPage() {
 
           {/* Content Overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
-            <div className="max-w-4xl mx-auto">
+            <FadeInSection className="max-w-4xl mx-auto" variant="heading" blur delay={0.1}>
               <span className="inline-block px-4 py-1.5 bg-accent text-white text-sm font-semibold rounded-full mb-4">
                 {post.category}
               </span>
@@ -232,7 +233,7 @@ export default function BlogPostPage() {
                   {post.readTime}
                 </span>
               </div>
-            </div>
+            </FadeInSection>
           </div>
         </section>
 
@@ -242,7 +243,7 @@ export default function BlogPostPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Sidebar - Share & Like */}
               <aside className="lg:col-span-1">
-                <div className="lg:sticky lg:top-24 flex lg:flex-col gap-3">
+                <FadeInSection className="lg:sticky lg:top-24 flex lg:flex-col gap-3" delay={0.15}>
                   <button
                     onClick={() => post && toggleLike({
                       id: post.id,
@@ -287,11 +288,12 @@ export default function BlogPostPage() {
                   >
                     {copied ? <Check size={20} /> : <Copy size={20} />}
                   </button>
-                </div>
+                </FadeInSection>
               </aside>
 
               {/* Main Content */}
-              <article className="lg:col-span-11">
+              <FadeInSection className="lg:col-span-11" delay={0.2}>
+              <article>
                 {/* Excerpt */}
                 <p className="text-xl text-slate-300 leading-relaxed mb-8 font-medium">
                   {post.excerpt}
@@ -374,6 +376,7 @@ export default function BlogPostPage() {
                   </div>
                 </div>
               </article>
+              </FadeInSection>
             </div>
           </div>
         </section>
@@ -382,55 +385,58 @@ export default function BlogPostPage() {
         {relatedPosts.length > 0 && (
           <section className="py-16">
             <div className="max-w-7xl mx-auto px-4">
-              <h2 className="text-3xl font-bold text-white mb-10">
-                Related <span className="text-accent">Articles</span>
-              </h2>
+              <FadeInSection variant="heading" blur className="mb-10">
+                <h2 className="text-3xl font-bold text-white">
+                  Related <span className="text-accent">Articles</span>
+                </h2>
+              </FadeInSection>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <FadeInStagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {relatedPosts.map((relatedPost) => (
-                  <Link
-                    key={relatedPost.id}
-                    href={`/blog/${relatedPost.id}`}
-                    className="group rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300"
-                    style={{
-                      background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                    }}
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <Image
-                        src={relatedPost.imageUrl}
-                        alt={relatedPost.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                    <div className="p-5">
-                      <div className="flex items-center gap-3 text-slate-400 text-xs mb-3">
-                        <span className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          {formatDate(relatedPost.createdAt)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock size={12} />
-                          {relatedPost.readTime}
-                        </span>
+                  <FadeInItem key={relatedPost.id}>
+                    <Link
+                      href={`/blog/${relatedPost.id}`}
+                      className="group block rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 product-card-premium"
+                      style={{
+                        background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                      }}
+                    >
+                      <div className="relative h-48 overflow-hidden">
+                        <Image
+                          src={relatedPost.imageUrl}
+                          alt={relatedPost.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover motion-safe:group-hover:scale-[1.04] transition-transform duration-300"
+                        />
                       </div>
-                      <h3 className="font-bold text-white group-hover:text-accent transition line-clamp-2">
-                        {relatedPost.title}
-                      </h3>
-                    </div>
-                  </Link>
+                      <div className="p-5">
+                        <div className="flex items-center gap-3 text-slate-400 text-xs mb-3">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={12} />
+                            {formatDate(relatedPost.createdAt)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} />
+                            {relatedPost.readTime}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-white group-hover:text-accent transition line-clamp-2">
+                          {relatedPost.title}
+                        </h3>
+                      </div>
+                    </Link>
+                  </FadeInItem>
                 ))}
-              </div>
+              </FadeInStagger>
             </div>
           </section>
         )}
 
         {/* Newsletter CTA */}
         <section className="py-16">
-          <div className="max-w-4xl mx-auto px-4 text-center">
+          <FadeInSection className="max-w-4xl mx-auto px-4 text-center">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
               Enjoyed this article?
             </h2>
@@ -439,12 +445,12 @@ export default function BlogPostPage() {
             </p>
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-slate-900 rounded-full font-semibold hover:bg-accent/90 transition shadow-lg shadow-accent/25"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-slate-900 rounded-full font-semibold hover:bg-accent/90 btn-premium shadow-lg shadow-accent/25"
             >
               Explore More Articles
               <ArrowLeft size={20} className="rotate-180" />
             </Link>
-          </div>
+          </FadeInSection>
         </section>
       </div>
       <Footer />

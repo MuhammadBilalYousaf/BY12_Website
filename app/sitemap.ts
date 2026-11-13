@@ -118,5 +118,93 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Error fetching blogs for sitemap:", error)
   }
 
-  return [...staticPages, ...productPages, ...blogPages]
+  // Dynamic deal pages
+  let dealPages: MetadataRoute.Sitemap = []
+  try {
+    if (adminDb) {
+      const dealsSnapshot = await adminDb
+        .collection("deals")
+        .where("isActive", "==", true)
+        .get()
+
+      dealPages = dealsSnapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          url: `${BASE_URL}/deals/${doc.id}`,
+          lastModified: data.updatedAt?.toDate?.()?.toISOString() || currentDate,
+          changeFrequency: "daily" as const,
+          priority: 0.75,
+        }
+      })
+    }
+  } catch (error) {
+    console.error("Error fetching deals for sitemap:", error)
+  }
+
+  // Dynamic category pages
+  let categoryPages: MetadataRoute.Sitemap = []
+  try {
+    if (adminDb) {
+      const categoriesSnapshot = await adminDb
+        .collection("categories")
+        .get()
+
+      categoryPages = categoriesSnapshot.docs.map((doc) => {
+        const data = doc.data()
+        const categoryName = data.name || doc.id
+        const slug = categoryName.toLowerCase().replace(/\s+/g, "-")
+        return {
+          url: `${BASE_URL}/shop/${slug}`,
+          lastModified: data.updatedAt?.toDate?.()?.toISOString() || currentDate,
+          changeFrequency: "weekly" as const,
+          priority: 0.8,
+        }
+      })
+    }
+  } catch (error) {
+    console.error("Error fetching categories for sitemap:", error)
+  }
+
+  // Additional utility pages
+  const utilityPages: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/wishlist`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/cart`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/checkout`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/orders`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/profile`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+  ]
+
+  return [
+    ...staticPages,
+    ...productPages,
+    ...blogPages,
+    ...dealPages,
+    ...categoryPages,
+    ...utilityPages,
+  ]
 }

@@ -147,9 +147,18 @@ export default function AdminMessagesPage() {
     }
   }
 
-  const formatDate = (timestamp: Timestamp) => {
+  const formatDate = (timestamp: any) => {
     if (!timestamp) return "N/A"
-    const date = timestamp.toDate()
+    let date: Date
+    if (typeof timestamp === 'string') {
+      date = new Date(timestamp)
+    } else if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate()
+    } else if (timestamp instanceof Date) {
+      date = timestamp
+    } else {
+      return "N/A"
+    }
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",

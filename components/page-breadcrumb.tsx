@@ -17,28 +17,28 @@ export default function PageBreadcrumb({ items, className = "" }: PageBreadcrumb
   return (
     <nav 
       aria-label="Breadcrumb" 
-      className={`flex items-center gap-2 text-sm ${className}`}
+      className={`flex flex-wrap items-center gap-2 text-sm ${className}`}
     >
       <Link 
         href="/" 
-        className="flex items-center gap-1 text-slate-400 hover:text-accent transition-colors"
+        className="flex items-center gap-1 text-slate-400 hover:text-accent transition-colors flex-shrink-0"
       >
         <Home size={16} />
         <span className="sr-only">Home</span>
       </Link>
       
       {items.map((item, index) => (
-        <div key={index} className="flex items-center gap-2">
-          <ChevronRight size={14} className="text-slate-600" />
+        <div key={index} className="flex items-center gap-2 flex-wrap">
+          <ChevronRight size={14} className="text-slate-600 flex-shrink-0" />
           {item.href ? (
             <Link 
               href={item.href}
-              className="text-slate-400 hover:text-accent transition-colors"
+              className="text-slate-400 hover:text-accent transition-colors break-words"
             >
               {item.label}
             </Link>
           ) : (
-            <span className="text-white font-medium truncate max-w-[200px] sm:max-w-none">
+            <span className="text-white font-medium break-words">
               {item.label}
             </span>
           )}

@@ -21,6 +21,7 @@ import { useUserProfile } from "@/lib/hooks/use-user-profile"
 import ReviewModal from "@/components/review-modal"
 import { collection, query, where, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { FadeInSection, FadeInStagger, FadeInItem } from "@/components/animated-section"
 
 interface ReviewProduct {
   id: string
@@ -160,7 +161,7 @@ export default function OrdersPage() {
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <FadeInSection className="max-w-7xl mx-auto px-4 py-8" variant="heading">
           <div className="flex items-center gap-4 mb-4">
             <Link
               href="/profile"
@@ -232,13 +233,13 @@ export default function OrdersPage() {
               <p className="text-sm text-gray-400">Cancelled</p>
             </button>
           </div>
-        </div>
+        </FadeInSection>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Search */}
-        <div className="mb-6">
+        <FadeInSection className="mb-6" delay={0.1}>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
             <input
@@ -249,7 +250,7 @@ export default function OrdersPage() {
               className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
-        </div>
+        </FadeInSection>
 
         {/* Orders List */}
         {ordersLoading ? (
@@ -257,7 +258,7 @@ export default function OrdersPage() {
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-16 bg-slate-800/50 rounded-xl border border-slate-700">
+          <FadeInSection className="text-center py-16 bg-slate-800/50 rounded-xl border border-slate-700">
             <Package size={64} className="text-gray-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-white mb-2">
               {searchTerm || filter !== "all" ? "No orders found" : "No orders yet"}
@@ -270,17 +271,17 @@ export default function OrdersPage() {
             {!searchTerm && filter === "all" && (
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 btn-premium"
               >
                 <ShoppingBag size={18} />
                 Start Shopping
               </Link>
             )}
-          </div>
+          </FadeInSection>
         ) : (
-          <div className="space-y-4">
+          <FadeInStagger className="space-y-4">
             {filteredOrders.map((order) => (
-              <div
+              <FadeInItem
                 key={order.id}
                 className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden hover:border-slate-600 transition"
               >
@@ -360,16 +361,16 @@ export default function OrdersPage() {
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Link
                       href={`/track-order?orderId=${order.orderId}&email=${encodeURIComponent(order.customerEmail || user?.email || "")}`}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 btn-premium"
                     >
                       <Eye size={16} />
                       Track Order
                     </Link>
                   </div>
                 </div>
-              </div>
+              </FadeInItem>
             ))}
-          </div>
+          </FadeInStagger>
         )}
       </div>
 

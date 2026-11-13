@@ -9,6 +9,13 @@ export interface SizeVariant {
   images?: string[] // Variant-specific gallery; not shared across variants
 }
 
+/** Scroll-story / note pyramid data for product craftsmanship experience */
+export interface FragranceNotes {
+  top: string[]
+  middle: string[]
+  base: string[]
+}
+
 export interface Product {
   id: string
   name: string
@@ -17,6 +24,9 @@ export interface Product {
   includedItems?: string[]
   isDeal?: boolean
   dealId?: string
+  isTester?: boolean // Flag to mark product as a tester
+  testerQuantity?: number // Number of available tester samples
+  testerSize?: number // Size of tester (usually 5ml)
   price: number // Default/base price (first size variant price)
   originalPrice?: number
   onSale?: boolean
@@ -26,6 +36,10 @@ export interface Product {
   sizeVariants?: SizeVariant[] // Multiple sizes with prices
   description?: string
   imageUrl?: string
+  /** Optional public GLB link; no link means no 3D scroll story. */
+  modelUrl?: string
+  /** Size in ml represented by the model. */
+  modelSize?: number
   images?: string[]
   rating?: number
   reviews?: number
@@ -41,6 +55,12 @@ export interface Product {
   createdAt?: any
   updatedAt?: any
   altText?: string
+  /** Short poetic line used in the scroll story fragrance chapter */
+  fragranceLine?: string
+  /** Top / heart / base note pyramid */
+  fragranceNotes?: FragranceNotes
+  /** Key ingredients shown around the bottle (e.g. Rose, Oud, Amber) */
+  fragranceIngredients?: string[]
 }
 
 export interface CartItem {
@@ -114,6 +134,10 @@ export interface Deal {
   endDate?: any
   isActive: boolean
   featured?: boolean
+  metaTitle?: string
+  metaDescription?: string
+  keywords?: string
+  altText?: string
   createdAt?: any
   updatedAt?: any
 }
@@ -149,8 +173,8 @@ export interface CustomerInteraction {
   guestSessionId?: string // Temporary ID for guest users - cleared after email is linked
   
   // Interaction tracking
-  interactionType: "contact_form" | "checkout" | "cart_add" | "cart_remove" | "sign_up" | "sign_in" | "product_view"
-  interactionSource?: "contact_form" | "checkout_form" | "cart" | "sign_up_form" | "sign_in_form" | "product_page" | "wishlist"
+  interactionType: "contact_form" | "checkout" | "cart_add" | "cart_remove" | "sign_up" | "sign_in" | "product_view" | "tester_request_form" | "newsletter" | "page_view" | "sign_up_form"
+  interactionSource?: "contact_form" | "checkout_form" | "cart" | "sign_up_form" | "sign_in_form" | "product_page" | "wishlist" | "newsletter" | "tester_request" | "page"
   
   // Form field tracking (for contact and checkout)
   fieldsFilled?: {

@@ -142,7 +142,7 @@ export default function FAQ() {
             </div>
             <a
               href="/contact"
-              className="px-6 py-3 bg-accent hover:bg-accent/90 text-slate-900 font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-0.5"
+              className="px-6 py-3 bg-accent hover:bg-accent/90 text-slate-900 font-semibold rounded-xl btn-premium"
             >
               Contact Us
             </a>

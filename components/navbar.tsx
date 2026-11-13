@@ -4,12 +4,15 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { Menu, X, Search, ShoppingCart, User, Heart, ChevronDown } from "lucide-react"
 import { useAuth, useCart, useWishlist } from "@/lib/contexts"
 import { db } from "@/lib/firebase"
 import { collection, getDocs } from "firebase/firestore"
 import type { Deal, Product } from "@/lib/types"
 import { toSlug } from "@/lib/utils"
+
+const menuEase = [0.22, 1, 0.36, 1] as const
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -23,12 +26,41 @@ export default function Navbar() {
   const [isMobileShopOpen, setIsMobileShopOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const reduceMotion = useReducedMotion()
   const { user, signOut } = useAuth()
   const { itemCount } = useCart()
   const { wishlistCount } = useWishlist()
   const searchRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const shopMenuRef = useRef<HTMLDivElement>(null)
+
+  const dropdownMotion = reduceMotion
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.15 },
+      }
+    : {
+        initial: { opacity: 0, y: -6, scale: 0.98 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, y: -4, scale: 0.98 },
+        transition: { duration: 0.22, ease: menuEase },
+      }
+
+  const mobileMenuMotion = reduceMotion
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.15 },
+      }
+    : {
+        initial: { opacity: 0, height: 0 },
+        animate: { opacity: 1, height: "auto" },
+        exit: { opacity: 0, height: 0 },
+        transition: { duration: 0.28, ease: menuEase },
+      }
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -167,14 +199,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition">
+          <Link href="/" className="flex items-center gap-2 opacity-100 hover:opacity-80 transition-opacity duration-300">
             <Image
               src="/logo.png"
               alt="BY12"
               width={80}
               height={80}
               priority
-              className="rounded-lg"
+              className="rounded-lg transition-transform duration-300 motion-safe:hover:scale-[1.02]"
             />
             <span
               className="text-2xl md:text-3xl font-extrabold tracking-widest bg-gradient-to-r from-white via-accent to-yellow-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]"
@@ -192,7 +224,7 @@ export default function Navbar() {
             {/* Home Link */}
             <Link
               href="/"
-              className={`font-medium transition ${
+              className={`font-medium transition-colors duration-300 ${
                 pathname === "/" ? "text-accent" : "text-slate-300 hover:text-accent"
               }`}
             >
@@ -203,33 +235,38 @@ export default function Navbar() {
             <div className="relative" ref={shopMenuRef}>
               <button
                 onClick={() => setIsShopMenuOpen(!isShopMenuOpen)}
-                className={`font-medium transition flex items-center gap-1 ${
+                className={`font-medium transition-colors duration-300 flex items-center gap-1 ${
                   pathname === "/shop" ? "text-accent" : "text-slate-300 hover:text-accent"
                 }`}
               >
                 Shop
-                <ChevronDown size={16} className={`transition-transform ${isShopMenuOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={16} className={`transition-transform duration-300 ${isShopMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
-              {isShopMenuOpen && (
-                <div className="absolute left-0 mt-2 w-48 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl overflow-hidden">
-                  {shopCategories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => handleCategoryClick(category)}
-                      className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition"
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <AnimatePresence>
+                {isShopMenuOpen && (
+                  <motion.div
+                    {...dropdownMotion}
+                    className="absolute left-0 mt-2 w-48 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl overflow-hidden origin-top"
+                  >
+                    {shopCategories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => handleCategoryClick(category)}
+                        className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition-colors duration-200"
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Blog Link */}
             <Link
               href="/blog"
-              className={`font-medium transition ${
+              className={`font-medium transition-colors duration-300 ${
                 pathname === "/blog" || pathname.startsWith("/blog/") ? "text-accent" : "text-slate-300 hover:text-accent"
               }`}
             >
@@ -238,17 +275,26 @@ export default function Navbar() {
 
             <Link
               href="/deals"
-              className={`font-medium transition ${
+              className={`font-medium transition-colors duration-300 ${
                 pathname === "/deals" ? "text-accent" : "text-slate-300 hover:text-accent"
               }`}
             >
               Deals
             </Link>
 
+            <Link
+              href="/testers"
+              className={`font-medium transition-colors duration-300 ${
+                pathname === "/testers" ? "text-accent" : "text-slate-300 hover:text-accent"
+              }`}
+            >
+              Free Testers
+            </Link>
+
             {/* Other Links */}
             <Link
               href="/about"
-              className={`font-medium transition ${
+              className={`font-medium transition-colors duration-300 ${
                 pathname === "/about" ? "text-accent" : "text-slate-300 hover:text-accent"
               }`}
             >
@@ -256,7 +302,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/contact"
-              className={`font-medium transition ${
+              className={`font-medium transition-colors duration-300 ${
                 pathname === "/contact" ? "text-accent" : "text-slate-300 hover:text-accent"
               }`}
             >
@@ -270,96 +316,101 @@ export default function Navbar() {
             <div className="relative" ref={searchRef}>
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full transition"
+                className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full nav-icon-premium"
                 aria-label="Search"
               >
                 <Search size={20} />
               </button>
 
               {/* Search Dropdown */}
-              {isSearchOpen && (
-                <div className="fixed md:absolute left-4 right-4 md:left-auto md:right-0 top-20 md:top-auto md:mt-2 md:w-96 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl overflow-hidden z-50">
-                  <div className="p-4">
-                    <input
-                      type="text"
-                      placeholder="Search products and deals..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent bg-slate-900/50 text-white placeholder:text-slate-500"
-                      autoFocus
-                    />
-                  </div>
+              <AnimatePresence>
+                {isSearchOpen && (
+                  <motion.div
+                    {...dropdownMotion}
+                    className="fixed md:absolute left-4 right-4 md:left-auto md:right-0 top-20 md:top-auto md:mt-2 md:w-96 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl overflow-hidden z-50 origin-top"
+                  >
+                    <div className="p-4">
+                      <input
+                        type="text"
+                        placeholder="Search products and deals..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full px-4 py-3 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent bg-slate-900/50 text-white placeholder:text-slate-500"
+                        autoFocus
+                      />
+                    </div>
 
-                  {/* Search Results */}
-                  {searchResults.length > 0 && (
-                    <div className="max-h-96 overflow-y-auto border-t border-slate-700">
-                      {searchResults.map((product) => (
-                        <button
-                          key={product.id}
-                          onClick={() => handleProductClick(product)}
-                          className="w-full p-3 hover:bg-slate-700/50 transition flex items-center gap-3 text-left"
-                          aria-label={`View ${product.name}`}
+                    {/* Search Results */}
+                    {searchResults.length > 0 && (
+                      <div className="max-h-96 overflow-y-auto border-t border-slate-700">
+                        {searchResults.map((product) => (
+                          <button
+                            key={product.id}
+                            onClick={() => handleProductClick(product)}
+                            className="w-full p-3 hover:bg-slate-700/50 transition-colors duration-200 flex items-center gap-3 text-left"
+                            aria-label={`View ${product.name}`}
+                          >
+                            <Image
+                              src={product.imageUrl || "/placeholder.svg?height=60&width=60&query=perfume"}
+                              alt={product.name}
+                              width={48}
+                              height={48}
+                              className="object-cover rounded-lg"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-white truncate">{product.name}</p>
+                              <p className="text-sm text-slate-400 truncate">
+                                {product.category}{product.isDeal ? " • Deal" : ""}
+                              </p>
+                              <p className="text-sm font-semibold text-accent">Rs. {product.price.toFixed(2)}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* No Results */}
+                    {searchQuery.trim().length > 0 && searchResults.length === 0 && (
+                      <div className="p-6 text-center text-slate-400 border-t border-slate-700">
+                        No products or deals found for "{searchQuery}"
+                      </div>
+                    )}
+
+                    {/* View All Results */}
+                    {searchResults.length > 0 && (
+                      <div className="border-t border-slate-700 p-3">
+                        <Link
+                          href={`/shop`}
+                          onClick={() => {
+                            setIsSearchOpen(false)
+                            setSearchQuery("")
+                          }}
+                          className="block text-center text-sm text-accent hover:text-accent/80 font-semibold transition-colors duration-200"
                         >
-                          <Image
-                            src={product.imageUrl || "/placeholder.svg?height=60&width=60&query=perfume"}
-                            alt={product.name}
-                            width={48}
-                            height={48}
-                            className="object-cover rounded-lg"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-white truncate">{product.name}</p>
-                            <p className="text-sm text-slate-400 truncate">
-                              {product.category}{product.isDeal ? " • Deal" : ""}
-                            </p>
-                            <p className="text-sm font-semibold text-accent">Rs. {product.price.toFixed(2)}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* No Results */}
-                  {searchQuery.trim().length > 0 && searchResults.length === 0 && (
-                    <div className="p-6 text-center text-slate-400 border-t border-slate-700">
-                      No products or deals found for "{searchQuery}"
-                    </div>
-                  )}
-
-                  {/* View All Results */}
-                  {searchResults.length > 0 && (
-                    <div className="border-t border-slate-700 p-3">
-                      <Link
-                        href={`/shop`}
-                        onClick={() => {
-                          setIsSearchOpen(false)
-                          setSearchQuery("")
-                        }}
-                        className="block text-center text-sm text-accent hover:text-accent/80 font-semibold"
-                      >
-                        View all results in Shop
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              )}
+                          View all results in Shop
+                        </Link>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Wishlist with Badge */}
-            <Link href="/wishlist" className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full transition relative" aria-label="Wishlist">
+            <Link href="/wishlist" className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full nav-icon-premium relative" aria-label="Wishlist">
               <Heart size={20} />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg shadow-red-500/30">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg shadow-red-500/30 transition-transform duration-300">
                   {wishlistCount}
                 </span>
               )}
             </Link>
 
             {/* Cart with Badge */}
-            <Link href="/cart" className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full transition relative" aria-label="Cart">
+            <Link href="/cart" className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full nav-icon-premium relative" aria-label="Cart">
               <ShoppingCart size={20} />
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-accent text-slate-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg shadow-accent/30">
+                <span className="absolute -top-1 -right-1 bg-accent text-slate-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg shadow-accent/30 transition-transform duration-300 motion-safe:scale-100">
                   {itemCount}
                 </span>
               )}
@@ -369,73 +420,78 @@ export default function Navbar() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full transition"
+                className="p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full nav-icon-premium"
                 aria-label="User menu"
               >
                 <User size={20} />
               </button>
 
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl overflow-hidden">
-                  {user ? (
-                    <>
-                      <div className="px-4 py-3 border-b border-slate-700 bg-slate-900/50">
-                        <p className="text-sm font-semibold text-white truncate">
-                          {getUserDisplayName()}
-                        </p>
-                        <p className="text-xs text-slate-400 truncate mt-0.5">
-                          {user.email}
-                        </p>
-                      </div>
-                      <Link
-                        href="/profile"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition"
-                      >
-                        My Profile
-                      </Link>
-                      <Link
-                        href="/orders"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition"
-                      >
-                        My Orders
-                      </Link>
-                      <button
-                        onClick={() => {
-                          signOut()
-                          setIsUserMenuOpen(false)
-                        }}
-                        className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-700/50 transition border-t border-slate-700"
-                      >
-                        Sign Out
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/sign-in"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition"
-                      >
-                        Sign In
-                      </Link>
-                      <Link
-                        href="/sign-up"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition"
-                      >
-                        Sign Up
-                      </Link>
-                    </>
-                  )}
-                </div>
-              )}
+              <AnimatePresence>
+                {isUserMenuOpen && (
+                  <motion.div
+                    {...dropdownMotion}
+                    className="absolute right-0 mt-2 w-56 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl overflow-hidden origin-top"
+                  >
+                    {user ? (
+                      <>
+                        <div className="px-4 py-3 border-b border-slate-700 bg-slate-900/50">
+                          <p className="text-sm font-semibold text-white truncate">
+                            {getUserDisplayName()}
+                          </p>
+                          <p className="text-xs text-slate-400 truncate mt-0.5">
+                            {user.email}
+                          </p>
+                        </div>
+                        <Link
+                          href="/profile"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition-colors duration-200"
+                        >
+                          My Profile
+                        </Link>
+                        <Link
+                          href="/orders"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition-colors duration-200"
+                        >
+                          My Orders
+                        </Link>
+                        <button
+                          onClick={() => {
+                            signOut()
+                            setIsUserMenuOpen(false)
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-700/50 transition-colors duration-200 border-t border-slate-700"
+                        >
+                          Sign Out
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href="/sign-in"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition-colors duration-200"
+                        >
+                          Sign In
+                        </Link>
+                        <Link
+                          href="/sign-up"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="block px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-accent transition-colors duration-200"
+                        >
+                          Sign Up
+                        </Link>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Mobile Menu Toggle */}
             <button
-              className="md:hidden p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full transition"
+              className="md:hidden p-2 text-slate-300 hover:text-accent hover:bg-slate-800/50 rounded-full nav-icon-premium"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -445,149 +501,176 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t border-slate-800">
-            {/* User Info (Mobile) */}
-            {user && (
-              <div className="px-4 py-3 bg-slate-800/50 rounded-xl mb-4 border border-slate-700">
-                <p className="text-sm font-semibold text-white truncate">
-                  {getUserDisplayName()}
-                </p>
-                <p className="text-xs text-slate-400 truncate mt-0.5">
-                  {user.email}
-                </p>
-              </div>
-            )}
-
-            {/* Home Link */}
-            <Link
-              href="/"
-              onClick={() => setIsMenuOpen(false)}
-              className={`block py-2 font-medium transition ${
-                pathname === "/" ? "text-accent" : "text-slate-300 hover:text-accent"
-              }`}
+        <AnimatePresence initial={false}>
+          {isMenuOpen && (
+            <motion.div
+              {...mobileMenuMotion}
+              className="md:hidden overflow-hidden border-t border-slate-800"
             >
-              Home
-            </Link>
+              <div className="py-4 space-y-2">
+                {/* User Info (Mobile) */}
+                {user && (
+                  <div className="px-4 py-3 bg-slate-800/50 rounded-xl mb-4 border border-slate-700">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {getUserDisplayName()}
+                    </p>
+                    <p className="text-xs text-slate-400 truncate mt-0.5">
+                      {user.email}
+                    </p>
+                  </div>
+                )}
 
-            {/* Mobile Shop with Categories Dropdown */}
-            <div className="py-2">
-              <button
-                onClick={() => setIsMobileShopOpen(!isMobileShopOpen)}
-                className={`w-full flex items-center justify-between font-medium transition ${
-                  pathname === "/shop" ? "text-accent" : "text-slate-300 hover:text-accent"
-                }`}
-              >
-                <span>Shop</span>
-                <ChevronDown size={18} className={`transition-transform ${isMobileShopOpen ? "rotate-180" : ""}`} />
-              </button>
-              {isMobileShopOpen && (
-                <div className="pl-4 mt-2 space-y-2 border-l border-slate-700 ml-2">
-                  {shopCategories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => {
-                        handleCategoryClick(category)
-                        setIsMenuOpen(false)
-                        setIsMobileShopOpen(false)
-                      }}
-                      className="block py-1 text-sm text-slate-400 hover:text-accent transition"
-                    >
-                      {category}
-                    </button>
-                  ))}
+                {/* Home Link */}
+                <Link
+                  href="/"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block py-2 font-medium transition-colors duration-300 ${
+                    pathname === "/" ? "text-accent" : "text-slate-300 hover:text-accent"
+                  }`}
+                >
+                  Home
+                </Link>
+
+                {/* Mobile Shop with Categories Dropdown */}
+                <div className="py-2">
+                  <button
+                    onClick={() => setIsMobileShopOpen(!isMobileShopOpen)}
+                    className={`w-full flex items-center justify-between font-medium transition-colors duration-300 ${
+                      pathname === "/shop" ? "text-accent" : "text-slate-300 hover:text-accent"
+                    }`}
+                  >
+                    <span>Shop</span>
+                    <ChevronDown size={18} className={`transition-transform duration-300 ${isMobileShopOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  <AnimatePresence>
+                    {isMobileShopOpen && (
+                      <motion.div
+                        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                        animate={reduceMotion ? { opacity: 1 } : { opacity: 1, height: "auto" }}
+                        exit={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                        transition={{ duration: reduceMotion ? 0.15 : 0.22, ease: menuEase }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-4 mt-2 space-y-2 border-l border-slate-700 ml-2">
+                          {shopCategories.map((category) => (
+                            <button
+                              key={category}
+                              onClick={() => {
+                                handleCategoryClick(category)
+                                setIsMenuOpen(false)
+                                setIsMobileShopOpen(false)
+                              }}
+                              className="block py-1 text-sm text-slate-400 hover:text-accent transition-colors duration-200"
+                            >
+                              {category}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              )}
-            </div>
 
-            {/* Blog Link */}
-            <Link
-              href="/blog"
-              onClick={() => setIsMenuOpen(false)}
-              className={`block py-2 font-medium transition ${
-                pathname === "/blog" || pathname.startsWith("/blog/") ? "text-accent" : "text-slate-300 hover:text-accent"
-              }`}
-            >
-              Blog
-            </Link>
-
-            <Link
-              href="/deals"
-              onClick={() => setIsMenuOpen(false)}
-              className={`block py-2 font-medium transition ${
-                pathname === "/deals" ? "text-accent" : "text-slate-300 hover:text-accent"
-              }`}
-            >
-              Deals
-            </Link>
-
-            {/* Other Links */}
-            <Link
-              href="/about"
-              onClick={() => setIsMenuOpen(false)}
-              className={`block py-2 font-medium transition ${
-                pathname === "/about" ? "text-accent" : "text-slate-300 hover:text-accent"
-              }`}
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-              onClick={() => setIsMenuOpen(false)}
-              className={`block py-2 font-medium transition ${
-                pathname === "/contact" ? "text-accent" : "text-slate-300 hover:text-accent"
-              }`}
-            >
-              Contact
-            </Link>
-
-            {/* Mobile User Actions */}
-            {user ? (
-              <>
+                {/* Blog Link */}
                 <Link
-                  href="/profile"
+                  href="/blog"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block py-2 font-medium text-slate-300 hover:text-accent transition"
+                  className={`block py-2 font-medium transition-colors duration-300 ${
+                    pathname === "/blog" || pathname.startsWith("/blog/") ? "text-accent" : "text-slate-300 hover:text-accent"
+                  }`}
                 >
-                  My Profile
+                  Blog
+                </Link>
+
+                <Link
+                  href="/deals"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block py-2 font-medium transition-colors duration-300 ${
+                    pathname === "/deals" ? "text-accent" : "text-slate-300 hover:text-accent"
+                  }`}
+                >
+                  Deals
+                </Link>
+
+                <Link
+                  href="/testers"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block py-2 font-medium transition-colors duration-300 ${
+                    pathname === "/testers" ? "text-accent" : "text-slate-300 hover:text-accent"
+                  }`}
+                >
+                  Free Testers
+                </Link>
+
+                {/* Other Links */}
+                <Link
+                  href="/about"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block py-2 font-medium transition-colors duration-300 ${
+                    pathname === "/about" ? "text-accent" : "text-slate-300 hover:text-accent"
+                  }`}
+                >
+                  About
                 </Link>
                 <Link
-                  href="/orders"
+                  href="/contact"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block py-2 font-medium text-slate-300 hover:text-accent transition"
+                  className={`block py-2 font-medium transition-colors duration-300 ${
+                    pathname === "/contact" ? "text-accent" : "text-slate-300 hover:text-accent"
+                  }`}
                 >
-                  My Orders
+                  Contact
                 </Link>
-                <button
-                  onClick={() => {
-                    signOut()
-                    setIsMenuOpen(false)
-                  }}
-                  className="w-full text-left py-2 font-medium text-red-400 hover:opacity-80 transition"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/sign-in"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block py-2 font-medium text-slate-300 hover:text-accent transition"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block py-2 font-medium text-slate-300 hover:text-accent transition"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
-        )}
+
+                {/* Mobile User Actions */}
+                {user ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block py-2 font-medium text-slate-300 hover:text-accent transition-colors duration-300"
+                    >
+                      My Profile
+                    </Link>
+                    <Link
+                      href="/orders"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block py-2 font-medium text-slate-300 hover:text-accent transition-colors duration-300"
+                    >
+                      My Orders
+                    </Link>
+                    <button
+                      onClick={() => {
+                        signOut()
+                        setIsMenuOpen(false)
+                      }}
+                      className="w-full text-left py-2 font-medium text-red-400 hover:opacity-80 transition-opacity duration-300"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/sign-in"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block py-2 font-medium text-slate-300 hover:text-accent transition-colors duration-300"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/sign-up"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block py-2 font-medium text-slate-300 hover:text-accent transition-colors duration-300"
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </nav>
   )

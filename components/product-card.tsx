@@ -22,6 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
   const [showModal, setShowModal] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const isWishlisted = isInWishlist(product.id)
   const router = useRouter()
   
@@ -64,7 +65,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       return
     }
     
-    addItem(product)
+    // For testers, pass the testerSize to ensure consistency with product page
+    if (product.isTester === true) {
+      const testerSize = (product as any).testerSize || 5
+      addItem(product, 1, testerSize, product.price)
+    } else {
+      addItem(product)
+    }
+    
     setToastMessage(`${product.name} added to cart!`)
     setShowToast(true)
   }
@@ -116,14 +124,15 @@ export default function ProductCard({ product }: ProductCardProps) {
       ? `${primaryVariant.saleValue}% OFF`
       : `SAVE Rs. ${primaryVariant?.saleValue}`
     : ""
-  const stockCount = (product as any).stock
+  // For testers, use testerQuantity; otherwise use product.stock
+  const stockCount = product.isTester ? (product as any).testerQuantity : (product as any).stock
   const inStock = product.inStock ?? (stockCount !== undefined ? stockCount > 0 : true)
 
 
   return (
     <>
       <div 
-        className="group relative rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1"
+        className="group relative rounded-2xl overflow-hidden product-card-premium"
         style={{
           background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.9) 0%, rgba(30, 41, 59, 0.95) 100%)',
           boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
@@ -171,12 +180,15 @@ export default function ProductCard({ product }: ProductCardProps) {
                   alt={product.altText || product.name}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className={`object-cover transition-all duration-700 ease-in-out group-hover:scale-110 ${
+                  className={`object-cover transition-[transform,opacity,filter] duration-500 ease-out motion-safe:group-hover:scale-[1.04] ${
+                    imageLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
+                  } ${
                     Boolean(cardHoverImage)
-                      ? "group-hover:opacity-0"
+                      ? "group-hover:!opacity-0"
                       : ""
                   }`}
                   loading="lazy"
+                  onLoad={() => setImageLoaded(true)}
                 />
                 {/* Secondary Image (shown on hover) */}
                 {cardHoverImage && (
@@ -185,7 +197,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     alt={`${product.altText || product.name} - alternate view`}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-all duration-700 ease-in-out opacity-0 group-hover:opacity-100 group-hover:scale-110"
+                    className="object-cover transition-[transform,opacity] duration-300 ease-out opacity-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.04]"
                     loading="lazy"
                   />
                 )}
@@ -201,7 +213,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               <button
                 type="button"
                 onClick={handleQuickView}
-                className="p-2 sm:p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-accent hover:border-accent hover:text-slate-900 transition-all duration-300 transform hover:scale-110"
+                className="p-2 sm:p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-accent hover:border-accent hover:text-slate-900 transition-[transform,background-color,border-color,color] duration-300 motion-safe:hover:scale-110 btn-press"
                 aria-label="Quick view"
               >
                 <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -209,7 +221,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               <button
                 type="button"
                 onClick={handleWishlistToggle}
-                className={`p-2 sm:p-3 rounded-full transition-all duration-300 transform hover:scale-110 backdrop-blur-sm border ${isWishlisted
+                className={`p-2 sm:p-3 rounded-full transition-[transform,background-color,border-color,color] duration-300 motion-safe:hover:scale-110 btn-press backdrop-blur-sm border ${isWishlisted
                     ? "bg-red-500 border-red-500 text-white"
                     : "bg-white/10 border-white/20 text-white hover:bg-red-500 hover:border-red-500"
                 }`}
@@ -221,7 +233,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 type="button"
                 onClick={handleAddToCart}
                 disabled={!inStock}
-                className="p-2 sm:p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-accent hover:border-accent hover:text-slate-900 transition-all duration-300 transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 sm:p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-accent hover:border-accent hover:text-slate-900 transition-[transform,background-color,border-color,color] duration-300 motion-safe:hover:scale-110 btn-press disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Add to cart"
               >
                 <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -271,7 +283,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               type="button"
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="p-2 sm:p-2.5 bg-accent hover:bg-accent/90 text-slate-900 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent/20 hover:shadow-accent/30 relative z-20"
+              className="p-2 sm:p-2.5 bg-accent hover:bg-accent/90 text-slate-900 rounded-xl btn-premium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent/20 relative z-20"
               aria-label="Add to cart"
             >
               <ShoppingCart className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" />

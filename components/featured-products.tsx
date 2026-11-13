@@ -65,7 +65,7 @@ export default function FeaturedProducts() {
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <FadeInSection className="text-center mb-16">
+        <FadeInSection className="text-center mb-16" variant="heading" blur>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/20 rounded-full mb-6 backdrop-blur-sm">
             <span className="text-accent text-sm font-medium tracking-wide uppercase">✨ Handpicked for You</span>
           </div>
@@ -99,10 +99,10 @@ export default function FeaturedProducts() {
               <div className="text-center">
                 <Link
                   href="/shop"
-                  className="group inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent/90 text-slate-900 font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5"
+                  className="group inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent/90 text-slate-900 font-semibold rounded-xl btn-premium shadow-lg shadow-accent/25"
                 >
                   View All Products 
-                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
                 </Link>
               </div>
             </FadeInSection>
@@ -113,10 +113,10 @@ export default function FeaturedProducts() {
               <p className="text-slate-300 text-lg">No featured products available at the moment.</p>
               <Link
                 href="/shop"
-                className="group inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent/90 text-slate-900 font-semibold rounded-xl transition-all duration-300"
+                className="group inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent/90 text-slate-900 font-semibold rounded-xl btn-premium"
               >
                 Browse All Products 
-                <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
           </div>
