@@ -1,8 +1,8 @@
 # Optional GLB model links
 
-In Admin > Products > Add/Edit, paste a direct public GLB URL into **GLB Model Link (optional)**. Choose the size represented by the model, press **Preview model**, then save the product.
+In Admin > Products > Add/Edit, each size (for example 50ml and 30ml) has its own GLB field. Upload a `.glb` file there — it is stored in the existing Firebase Storage bucket and the download link is saved on that size — or paste a direct public HTTPS GLB URL. Press **Preview**, then save the product.
 
-Firebase Firestore stores only the modelUrl string and optional modelSize number. The GLB stays on your chosen external host. There are no upload APIs, storage buckets, provider API keys or paid-plan requirements in this feature.
+Firebase Firestore stores a `modelUrl` on each size variant, plus the first model on the product for older pages. The file itself stays in Firebase Storage (the same free Spark bucket already used for product images) or on any host you pasted.
 
 The host must serve the actual GLB file over HTTPS and allow cross-origin requests. A Google Drive or other sharing-page URL is not a direct model file. Same-site model paths are also supported; the included Coffeeno file can be previewed at /models/coffeeno-50ml.glb.
 

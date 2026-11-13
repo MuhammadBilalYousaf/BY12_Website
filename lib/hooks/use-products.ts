@@ -11,6 +11,7 @@ export interface SizeVariant {
   saleValue?: number
   saleImageUrl?: string
   images?: string[]
+  modelUrl?: string
 }
 
 export interface Product {

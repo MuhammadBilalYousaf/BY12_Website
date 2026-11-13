@@ -1,4 +1,5 @@
-type ModelProduct = { id?: string; modelUrl?: string; modelSize?: number }
+type ModelVariant = { size: number; modelUrl?: string }
+type ModelProduct = { id?: string; modelUrl?: string; modelSize?: number; sizeVariants?: ModelVariant[] }
 
 /** Accept direct HTTPS links and same-site paths; HTTP is only for local previews. */
 export function isProductModelUrl(value: string) {
@@ -12,8 +13,19 @@ export function isProductModelUrl(value: string) {
   } catch { return false }
 }
 
+function cleanModelUrl(value: unknown) {
+  return typeof value === "string" && isProductModelUrl(value) ? value.trim() : ""
+}
+
 export function resolveProductModel(product: ModelProduct, selectedSize?: number) {
-  const url = typeof product.modelUrl === "string" ? product.modelUrl.trim() : ""
-  if (!isProductModelUrl(url) || (product.modelSize && selectedSize && product.modelSize !== selectedSize)) return null
+  const variants = Array.isArray(product.sizeVariants) ? product.sizeVariants : []
+  const variantMatch = selectedSize
+    ? variants.find((variant) => variant.size === selectedSize && cleanModelUrl(variant.modelUrl))
+    : variants.find((variant) => cleanModelUrl(variant.modelUrl))
+  const variantUrl = cleanModelUrl(variantMatch?.modelUrl)
+  if (variantUrl) return { url: variantUrl, size: variantMatch?.size }
+
+  const url = cleanModelUrl(product.modelUrl)
+  if (!url || (product.modelSize && selectedSize && product.modelSize !== selectedSize)) return null
   return { url, size: product.modelSize }
 }

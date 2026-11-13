@@ -12,6 +12,19 @@ test('saved links are trimmed and used only for the selected model size', () => 
   assert.equal(resolveProductModel(product, 30), null)
   assert.equal(resolveProductModel({ modelUrl: '' }, 50), null)
 })
+test('each size variant can have its own GLB', () => {
+  const product = {
+    modelUrl: 'https://example.com/old-50.glb',
+    modelSize: 50,
+    sizeVariants: [
+      { size: 50, modelUrl: ' https://example.com/50.glb ' },
+      { size: 30, modelUrl: 'https://example.com/30.glb' },
+    ],
+  }
+  assert.equal(resolveProductModel(product, 50)?.url, 'https://example.com/50.glb')
+  assert.equal(resolveProductModel(product, 30)?.url, 'https://example.com/30.glb')
+  assert.equal(resolveProductModel({ sizeVariants: [{ size: 30, modelUrl: '' }, { size: 50 }] }, 30), null)
+})
 test('public HTTPS and same-site model paths are supported', () => {
   assert.equal(isProductModelUrl('https://cdn.example.com/model.glb?signature=123'), true)
   assert.equal(isProductModelUrl('/models/coffeeno-50ml.glb'), true)
