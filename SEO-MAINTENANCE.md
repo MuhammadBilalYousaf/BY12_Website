@@ -9,7 +9,10 @@ The public HTTP regression suite additionally verifies the return-policy page's 
 ## Validation and release
 
 - Existing 40 SEO, Analytics, model and authentication tests passed.
-- Standalone TypeScript validation and production deployment verification are in progress.
+- Standalone TypeScript validation passed. The Vercel production build also passed compilation and TypeScript validation.
+- Released source commit: `30a88e9`. Promoted production deployment: `dpl_6CYfCbvHzzGbqsX2JBuJ8NyQthUV`, `bilalyousaf12store-k5fkc9bbs-bilal-yousafs-projects.vercel.app`.
+- All 33 public HTTP regression checks passed after promotion. Evidence: `SEO-verification/maintenance-live-smoke.json`, including the new policy-page and organization JSON-LD checks.
+- Google PageSpeed mobile and desktop diagnostics were requested, but both returned HTTP 429 (daily API quota exceeded). No performance score or Core Web Vitals pass is claimed. Responses are saved in `SEO-verification/pagespeed-mobile.json` and `pagespeed-desktop.json`.
 - Current production rollback target before this change: `dpl_DceKmfsRXHkJdjBmGDqB17KtUJcJ`, `bilalyousaf12store-co1fswjy6-bilal-yousafs-projects.vercel.app`.
 
 ## Work that remains
