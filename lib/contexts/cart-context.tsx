@@ -6,6 +6,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { trackCartOperation, getOrCreateGuestId } from "@/lib/tracking"
 import type { Product, CartItem } from "@/lib/types"
+import { recordEcommerce } from "@/lib/google-analytics"
 
 interface CartContextType {
   items: CartItem[]
@@ -166,6 +167,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (product: Product, quantity: number = 1, selectedSize?: number, selectedPrice?: number) => {
     const { resolvedSize, resolvedPrice } = resolveItemSelection(product, selectedSize, selectedPrice)
+    const sampleAlreadyAdded = product.isTester && items.some(item => item.product.id === product.id && item.selectedSize === resolvedSize)
+    if (!sampleAlreadyAdded) recordEcommerce("add_to_cart", [{ product, quantity: product.isTester ? 1 : quantity, selectedSize: resolvedSize, selectedPrice: resolvedPrice }])
 
     setItems((currentItems) => {
       // Find existing item with same product ID AND same size
@@ -225,6 +228,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   const removeItem = (productId: string, selectedSize?: number) => {
+    const removed = items.find(item => item.product.id === productId && item.selectedSize === selectedSize)
+    if (removed) recordEcommerce("remove_from_cart", [removed])
     setItems((currentItems) => {
       const itemToRemove = currentItems.find(
         (item) => item.product.id === productId && item.selectedSize === selectedSize
@@ -263,6 +268,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (quantity < 1) {
       removeItem(productId, selectedSize)
       return
+    }
+
+    const previous = items.find(item => item.product.id === productId && item.selectedSize === selectedSize)
+    if (previous) {
+      const nextQuantity = previous.product.isTester ? Math.min(quantity, 1) : quantity
+      const difference = nextQuantity - previous.quantity
+      if (difference) recordEcommerce(difference > 0 ? "add_to_cart" : "remove_from_cart", [{ ...previous, quantity: Math.abs(difference) }])
     }
 
     setItems((currentItems) => {

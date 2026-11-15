@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Navbar from "@/components/navbar"
@@ -12,9 +12,15 @@ import { useOrders } from "@/lib/hooks/use-orders"
 import { useCoupons } from "@/lib/hooks/use-coupons"
 import { trackFormFieldChange, trackOrderCompletion, linkGuestInteractionsToEmail, clearGuestId, getOrCreateGuestId } from "@/lib/tracking"
 import { FadeInSection } from "@/components/animated-section"
+import { recordEcommerce, recordOrderResult } from "@/lib/google-analytics"
 
 export default function CheckoutPage() {
-  const { items, total, clearCart, discount, appliedCoupon } = useCart()
+  const { items, total, clearCart, discount, appliedCoupon, isLoading: cartLoading } = useCart()
+  const recordedCheckout = useRef(false)
+  useEffect(() => {
+    if (cartLoading || recordedCheckout.current || !items.length) return
+    if (recordEcommerce("begin_checkout", items, discount)) recordedCheckout.current = true
+  }, [items, discount, cartLoading])
   const { user } = useAuth()
   const router = useRouter()
   const { createOrder } = useOrders()
@@ -168,6 +174,7 @@ export default function CheckoutPage() {
 
       // Create order in Firebase
       const result = await createOrder(orderData)
+      recordOrderResult(result, cartItems, { discount: discountAmount, shipping: shippingAmount, tax: taxAmount })
 
       if (result.success && result.orderId) {
         console.log("✅ ORDER CREATED SUCCESSFULLY IN FIREBASE!")

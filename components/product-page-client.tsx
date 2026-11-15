@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -23,6 +23,7 @@ import { useProductReviews } from "@/lib/hooks/use-product-reviews"
 import { trackProductView } from "@/lib/tracking"
 import { defaultSelection, calculateSalePrice } from "@/lib/product-pricing"
 import { categoryPath } from "@/lib/seo"
+import { recordEcommerce } from "@/lib/google-analytics"
 
 export default function ProductPageClient({ initialProduct, initialSize, initialRelatedProducts = [] }: { initialProduct: Product; initialSize?: number; initialRelatedProducts?: Product[] }) {
   const id = initialProduct.id
@@ -42,6 +43,14 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
   const [relatedProducts, setRelatedProducts] = useState<Product[]>(initialRelatedProducts)
   const [lightboxImage, setLightboxImage] = useState<string | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const lastAnalyticsView = useRef("")
+
+  useEffect(() => {
+    if (!product) return
+    const key = `${product.id}:${selectedSize}:${selectedPrice}`
+    if (lastAnalyticsView.current === key) return
+    if (recordEcommerce("view_item", [{ product, quantity: 1, selectedSize, selectedPrice }])) lastAnalyticsView.current = key
+  }, [product, selectedSize, selectedPrice])
 
   // Fetch product reviews
   const { reviews, stats: reviewStats, loading: reviewsLoading } = useProductReviews(id)

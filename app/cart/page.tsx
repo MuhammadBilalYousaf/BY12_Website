@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -12,9 +12,15 @@ import Toast from "@/components/toast"
 import { useCoupons } from "@/lib/hooks/use-coupons"
 import { FadeInSection } from "@/components/animated-section"
 import { toSlug } from "@/lib/utils"
+import { recordEcommerce } from "@/lib/google-analytics"
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, clearCart, total, itemCount, discount, appliedCoupon, applyDiscount, removeDiscount } = useCart()
+  const { items, updateQuantity, removeItem, clearCart, total, itemCount, discount, appliedCoupon, applyDiscount, removeDiscount, isLoading } = useCart()
+  const recordedCart = useRef(false)
+  useEffect(() => {
+    if (isLoading || recordedCart.current || !items.length) return
+    if (recordEcommerce("view_cart", items, discount)) recordedCart.current = true
+  }, [items, discount, isLoading])
   const { user } = useAuth()
   const { validateCoupon } = useCoupons()
   const router = useRouter()

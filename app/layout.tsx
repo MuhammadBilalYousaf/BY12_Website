@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo-schemas"
 import { PageTransition } from "@/components/page-transition"
 import VisitorTracker from "@/components/visitor-tracker"
+import GoogleAnalytics from "@/components/google-analytics"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.bilalyousaf12.store"),
@@ -85,6 +86,7 @@ export default function RootLayout({
               <CartProvider>
                 <WishlistProvider>
                   <VisitorTracker />
+                  <GoogleAnalytics />
                   <div id="main-content">
                     <PageTransition>
                       {children}
