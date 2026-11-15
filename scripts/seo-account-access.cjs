@@ -1,6 +1,9 @@
 // Read-only discovery using the project's existing service account. No permission changes.
-require('@next/env').loadEnvConfig(process.cwd())
-const { GoogleAuth } = require('google-auth-library')
+process.loadEnvFile('.env.local')
+const { createRequire } = require('node:module')
+const adminRequire = createRequire(require.resolve('firebase-admin/app'))
+const firestoreRequire = createRequire(adminRequire.resolve('@google-cloud/firestore'))
+const { GoogleAuth } = firestoreRequire('google-auth-library')
 const fs = require('node:fs/promises')
 
 async function main() {

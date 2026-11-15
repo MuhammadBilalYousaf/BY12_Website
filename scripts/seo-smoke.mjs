@@ -4,9 +4,14 @@ import http from 'node:http'
 import https from 'node:https'
 
 const base = process.argv[2] || 'http://localhost:3100'
+const staged = process.argv.includes('--staged')
+const stagingHeaders = staged && process.env.SEO_STAGING_BYPASS ? { 'x-vercel-protection-bypass': process.env.SEO_STAGING_BYPASS } : {}
+if (Object.keys(stagingHeaders).length) assert.match(base, /^https:\/\/bilalyousaf12store-[a-z0-9]+-bilal-yousafs-projects\.vercel\.app$/)
+const reportName = process.argv.find(value => value.startsWith('--report='))?.slice(9) || 'smoke-results.json'
+assert.match(reportName, /^[a-zA-Z0-9-]+\.json$/)
 const results = []
 async function get(path, options = {}) {
-  const response = await fetch(base + path, { redirect: 'manual', signal: AbortSignal.timeout(45000), ...options })
+  const response = await fetch(base + path, { headers: stagingHeaders, redirect: 'manual', signal: AbortSignal.timeout(45000), ...options })
   const html = await response.text()
   return { response, html }
 }
@@ -36,7 +41,7 @@ await check('Permanent category alias', async () => {
   assert.equal(response.status, 308)
   assert.ok(response.headers.get('location').endsWith('/shop/men'))
 })
-await check('Permanent preferred-host redirect', async () => {
+if (!staged) await check('Permanent preferred-host redirect', async () => {
   // Node fetch may rewrite Host; a raw request exercises the actual host matcher.
   const target = new URL('/shop', base)
   const result = await new Promise((resolve, reject) => {
@@ -120,19 +125,23 @@ await check('Existing blog content connects to product and buying-guide pages', 
   assert.ok(content.includes('href="/guides/30ml-vs-50ml-perfume"'))
 })
 await check('Social image is an actual image response', async () => {
-  const response = await fetch(base + '/opengraph-image', { signal: AbortSignal.timeout(45000) })
+  const response = await fetch(base + '/opengraph-image', { headers: stagingHeaders, signal: AbortSignal.timeout(45000) })
   assert.equal(response.status, 200)
   assert.ok(response.headers.get('content-type').includes('image/png'))
   await response.arrayBuffer()
 })
 await check('Coffeeno fallback model is served as a valid GLB', async () => {
-  const response = await fetch(base + '/models/coffeeno-50ml.glb', { signal: AbortSignal.timeout(45000) })
+  const response = await fetch(base + '/models/coffeeno-50ml.glb', { headers: stagingHeaders, signal: AbortSignal.timeout(45000) })
   assert.equal(response.status, 200)
   const body = Buffer.from(await response.arrayBuffer())
   assert.equal(body.toString('ascii', 0, 4), 'glTF')
   assert.equal(body.readUInt32LE(4), 2)
 })
+await check('Anonymous model uploads require admin authentication', async () => {
+  const { response } = await get('/api/upload-model', { method: 'POST' })
+  assert.equal(response.status, 401)
+})
 await fs.mkdir('SEO-verification', { recursive: true })
-await fs.writeFile('SEO-verification/smoke-results.json', JSON.stringify({ checkedAt: new Date().toISOString(), base, results }, null, 2))
+await fs.writeFile(`SEO-verification/${reportName}`, JSON.stringify({ checkedAt: new Date().toISOString(), base, staged, results }, null, 2))
 console.log(`${results.filter(result => result.passed).length}/${results.length} checks passed`)
 if (results.some(result => !result.passed)) process.exitCode = 1
