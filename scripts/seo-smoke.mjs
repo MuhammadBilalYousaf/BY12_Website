@@ -10,6 +10,7 @@ if (Object.keys(stagingHeaders).length) assert.match(base, /^https:\/\/bilalyous
 const reportName = process.argv.find(value => value.startsWith('--report='))?.slice(9) || 'smoke-results.json'
 assert.match(reportName, /^[a-zA-Z0-9-]+\.json$/)
 const results = []
+const keywordPlan = JSON.parse(await fs.readFile(new URL('../seo-content/keyword-catalog.json', import.meta.url), 'utf8'))
 async function get(path, options = {}) {
   const response = await fetch(base + path, { headers: stagingHeaders, redirect: 'manual', signal: AbortSignal.timeout(45000), ...options })
   const html = await response.text()
@@ -22,15 +23,21 @@ async function check(name, action) {
 const count = (html, expression) => [...html.matchAll(expression)].length
 const h1 = html => /<h1\b/.test(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''))
 
-for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeeno_impression_of_khamrah_qahwa', '/product/ravla_inspired_by_gucci_flora', '/blog/ke8yY9PLMbeXhUbEli7Z', '/deals/coffeeno-double-dose-50ml-30ml-oud-coffee-duo-by-by12', '/guides', '/guides/30ml-vs-50ml-perfume', '/guides/inspired-perfumes-pakistan', '/refund']) {
+for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeeno_impression_of_khamrah_qahwa', '/product/ravla_inspired_by_gucci_flora', '/product/coffeeno---3ml-tester', '/product/ravla---3ml-tester', '/testers', '/blog/ke8yY9PLMbeXhUbEli7Z', '/deals/coffeeno-double-dose-50ml-30ml-oud-coffee-duo-by-by12', '/guides', '/guides/30ml-vs-50ml-perfume', '/guides/inspired-perfumes-pakistan', '/guides/coffeeno-vs-ravla', '/refund']) {
   await check('HTML SEO ' + route, async () => {
     const { response, html } = await get(route)
     assert.equal(response.status, 200)
     assert.equal(count(html, /<meta name="description"/g), 1)
     assert.ok(h1(html), 'H1 missing from server HTML')
+    assert.equal(count(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''), /<h1\b/g), 1, 'expected one visible main heading')
     assert.ok(html.includes('rel="canonical" href="https://www.bilalyousaf12.store'), 'preferred-host canonical missing')
     assert.ok(!html.includes('<title>Product Details'), 'generic product title')
-    if (route.includes('/product/')) assert.ok(html.includes('"@type":"ProductGroup"'), 'server ProductGroup missing')
+    if (route.includes('/product/')) {
+      const patch = keywordPlan.patches.find(patch => patch.collection === 'products' && route === `/product/${patch.id}`)
+      assert.ok(html.includes('"@type":"' + (route.includes('tester') ? 'Product' : 'ProductGroup') + '"'), 'server product schema missing')
+      assert.ok(html.includes(`<title>${patch.fields.metaTitle}</title>`), 'keyword-informed CMS title missing')
+      assert.ok(html.includes(patch.fields.description.split('.')[0]), 'updated product introduction missing from server HTML')
+    }
   })
 }
 await check('Organization references the published return policy without inventing terms', async () => {
@@ -84,6 +91,7 @@ await check('Sitemap only lists intended preferred-host URLs', async () => {
   assert.ok(html.includes('/testers'))
   assert.ok(html.includes('/guides/30ml-vs-50ml-perfume'))
   assert.ok(html.includes('/guides/inspired-perfumes-pakistan'))
+    assert.ok(html.includes('/guides/coffeeno-vs-ravla'))
   assert.ok(!/<loc>[^<]*\/(cart|checkout|wishlist|profile|orders|track-order)<\/loc>/.test(html))
   assert.ok([...html.matchAll(/<loc>(.*?)<\/loc>/g)].every(match => match[1].startsWith('https://www.bilalyousaf12.store')))
 })
@@ -129,6 +137,32 @@ await check('Guide has Article markup and real product links in server HTML', as
   assert.ok(html.includes('"@type":"Article"'))
   assert.ok(html.includes('href="/product/coffeeno_impression_of_khamrah_qahwa?size=30"'))
   assert.ok(html.includes('href="/product/ravla_inspired_by_gucci_flora?size=50"'))
+})
+await check('Homepage connects brand perfumes and the comparison guide in server HTML', async () => {
+  const { html } = await get('/')
+  const content = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+  const text = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
+  assert.ok(text.includes('Coffeeno perfume by BY12'))
+  assert.ok(text.includes('Ravla perfume by BY12'))
+  assert.ok(content.includes('href="/guides/coffeeno-vs-ravla"'))
+})
+await check('Comparison guide includes actual size and matching tester links', async () => {
+  const { html } = await get('/guides/coffeeno-vs-ravla')
+  const content = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+  assert.ok(html.includes('"@type":"Article"'))
+  for (const id of ['coffeeno_impression_of_khamrah_qahwa', 'ravla_inspired_by_gucci_flora']) {
+    assert.ok(content.includes(`href="/product/${id}?size=30"`))
+    assert.ok(content.includes(`href="/product/${id}?size=50"`))
+  }
+  for (const id of ['coffeeno---3ml-tester', 'ravla---3ml-tester']) assert.ok(content.includes(`href="/product/${id}"`))
+})
+await check('Winter article title promise matches its actual BY12 buying guide', async () => {
+  const { html } = await get('/blog/ke8yY9PLMbeXhUbEli7Z')
+  const content = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+  assert.ok(html.includes('<title>Winter Perfumes in Pakistan: A Practical BY12 Buying Guide'))
+  assert.ok(content.includes('Explore Coffeeno for a warm coffee-style profile'))
+  assert.ok(content.includes('href="/guides/coffeeno-vs-ravla"'))
+  assert.ok(!content.includes('The Top 10 Luxury Fragrances'))
 })
 await check('Existing blog content connects to product and buying-guide pages', async () => {
   const { html } = await get('/blog/ke8yY9PLMbeXhUbEli7Z')

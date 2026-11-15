@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import Navbar from "@/components/navbar"
 import ProductCard from "@/components/product-card"
 import Footer from "@/components/footer"
@@ -86,13 +87,14 @@ export default function TestersPageClient({ initialTesters }: { initialTesters: 
               <div className="flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-[#d4af37] mr-3" />
                 <h1 className="text-4xl md:text-5xl font-bold text-white">
-                  Free Fragrance Testers
+                  Perfume Testers in Pakistan
                 </h1>
                 <Sparkles className="w-8 h-8 text-[#d4af37] ml-3" />
               </div>
               <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-                Explore BY12 samples before choosing a full bottle. Sample sizes and availability are listed on each product; delivery charges apply.
+                Explore BY12 perfume samples before choosing a full bottle. Check each Coffeeno or Ravla tester for its stated size and current stock; delivery charges apply.
               </p>
+              <Link href="/guides/coffeeno-vs-ravla" className="text-accent hover:underline">Compare Coffeeno and Ravla before choosing a sample →</Link>
 
               {/* Benefits Grid - Inline from left to right */}
               <div className="flex flex-col sm:flex-row gap-6 mt-12 w-full">

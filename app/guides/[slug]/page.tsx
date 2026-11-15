@@ -7,8 +7,8 @@ import PageBreadcrumb from "@/components/page-breadcrumb"
 import { BreadcrumbSchema } from "@/components/seo-schemas"
 import BottleComparison from "@/components/bottle-comparison"
 import { getProducts } from "@/lib/catalog"
-import { GUIDES, bottleOptions } from "@/lib/buying-guide"
-import { absoluteUrl, jsonLd, pageMetadata } from "@/lib/seo"
+import { GUIDES, bottleOptions, matchingTesters } from "@/lib/buying-guide"
+import { absoluteUrl, jsonLd, pageMetadata, plainText } from "@/lib/seo"
 import type { Product } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
@@ -41,6 +41,29 @@ function BottleSizeGuide({ products }: { products: Product[] }) {
   </>
 }
 
+function FragranceComparisonGuide({ products, testers }: { products: Product[]; testers: Product[] }) {
+  const comparison = ["coffeeno_impression_of_khamrah_qahwa", "ravla_inspired_by_gucci_flora"].flatMap(id => products.filter(product => product.id === id))
+  return <>
+    <p>Coffeeno and Ravla are BY12 perfumes with different inspiration references and scent descriptions. This comparison brings their current catalog information together so you can choose what to explore, compare the actual size prices and check whether a matching sample is available.</p>
+    <section><h2>How are Coffeeno and Ravla different?</h2><p>Start with the product’s own description, rather than assuming all inspired perfumes smell alike. Each name identifies a different reference fragrance. You are buying a BY12 product, and the reference does not establish identical ingredients, a similarity percentage or a particular wear time.</p>
+      <div className="space-y-8">{comparison.map(product => <section key={product.id}>
+        <h3><Link href={`/product/${product.id}`}>{product.name}</Link></h3>
+        {product.description && <p>{plainText(product.description.split(/\n\s*\n/)[0])}</p>}
+        <p>Listed in BY12’s <Link href={`/shop/${product.category.toLowerCase()}`}>{product.category.toLowerCase()} perfume collection</Link>. Use the description and your personal preference to decide what to try.</p>
+      </section>)}</div>
+    </section>
+    <section><h2>Compare current bottle sizes and prices</h2><p>Use the live catalog tables below to compare the available volumes, current prices and price per ml. A size sale can change the comparison. Delivery is separate and the checkout shows the final total.</p>
+      <div className="space-y-8">{comparison.map(product => <section key={product.id}><h3>{product.name.split(/\s[-–—]\s/)[0]} sizes, price and stock</h3><BottleComparison product={product} /></section>)}</div>
+      <p>For help deciding between volumes, read <Link href="/guides/30ml-vs-50ml-perfume">30ml vs 50ml perfume: compare bottle sizes</Link>.</p>
+    </section>
+    <section><h2>Can I try a Coffeeno or Ravla sample first?</h2><p>Check each matching tester’s current stock before ordering. A listed sample can be out of stock, and delivery charges can apply even when its product price is zero.</p>
+      <ul>{comparison.flatMap(product => matchingTesters(product, testers)).map(tester => <li key={tester.id}><Link href={`/product/${tester.id}`}>{tester.name}</Link> — {(tester.testerQuantity || 0) > 0 ? "In stock" : "Out of stock"}</li>)}</ul>
+      <p>Browse the <Link href="/testers">perfume testers and samples collection</Link> for current options. A full bottle’s availability does not establish that its tester is also available.</p>
+    </section>
+    <section><h2>Which BY12 perfume should I choose?</h2><p>Choose the scent description that appeals to you, then compare its available size and total cost. If both interest you, try their available samples separately and record what you prefer before buying a full bottle. There is no single best choice for every person, and another shopper’s experience does not guarantee yours.</p><p>Read the <Link href="/refund">return policy</Link> before opening a product you may want to return, or <Link href="/contact">contact BY12</Link> for product-specific questions.</p></section>
+  </>
+}
+
 function InspiredGuide({ products }: { products: Product[] }) {
   return <>
     <p>BY12 sells its own inspired fragrances in Pakistan. On a BY12 product page, a phrase such as “inspired by” or “impression of” identifies the fragrance being referenced. The product brand you are buying is BY12. This distinction helps you understand the listing before comparing scent descriptions, bottle sizes and prices.</p>
@@ -54,7 +77,8 @@ function InspiredGuide({ products }: { products: Product[] }) {
 
 export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
   const guide = guideFor((await params).slug)
-  const products = (await getProducts()).filter(product => !product.isTester)
+  const allProducts = await getProducts()
+  const products = allProducts.filter(product => !product.isTester)
   const path = `/guides/${guide.slug}`
   const article = { "@context": "https://schema.org", "@type": "Article", headline: guide.title, description: guide.description, mainEntityOfPage: absoluteUrl(path), image: absoluteUrl("/opengraph-image"), author: { "@type": "Organization", name: "BY12 Perfumes", url: absoluteUrl("/about") }, publisher: { "@type": "Organization", "@id": absoluteUrl("/#organization"), name: "BY12 Perfumes" }, inLanguage: "en" }
   return <><Navbar /><main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
@@ -64,7 +88,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     <article className="max-w-4xl mx-auto px-4 pb-16">
       <header className="py-6 mb-8 border-b border-slate-700"><p className="text-accent text-sm uppercase tracking-widest mb-4">BY12 buying guide</p><h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-5">{guide.title}</h1><p className="text-lg text-slate-300 leading-relaxed">{guide.description}</p></header>
       <div className="text-slate-300 leading-relaxed space-y-6 [&_section]:space-y-4 [&_section]:pt-3 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-white [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_a]:text-accent [&_a:hover]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-2">
-        {guide.slug === "30ml-vs-50ml-perfume" ? <BottleSizeGuide products={products} /> : <InspiredGuide products={products} />}
+        {guide.slug === "30ml-vs-50ml-perfume" ? <BottleSizeGuide products={products} /> : guide.slug === "coffeeno-vs-ravla" ? <FragranceComparisonGuide products={products} testers={allProducts.filter(product => product.isTester)} /> : <InspiredGuide products={products} />}
       </div>
       <nav aria-label="Related buying guides" className="mt-12 pt-6 border-t border-slate-700 flex flex-col gap-3 text-accent">{GUIDES.filter(item => item.slug !== guide.slug).map(item => <Link className="hover:underline" key={item.slug} href={`/guides/${item.slug}`}>{item.title} →</Link>)}<Link href="/shop" className="hover:underline">Explore the BY12 collection →</Link></nav>
     </article>

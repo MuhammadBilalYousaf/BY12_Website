@@ -132,7 +132,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
           <div className="max-w-7xl mx-auto px-4 relative z-10">
             <FadeInSection className="text-center">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-                {initialSearch ? "Search BY12 Perfumes" : selectedCategory === "All" ? "Shop BY12 Perfumes" : `Perfumes for ${selectedCategory} in Pakistan`}
+                {initialSearch ? "Search BY12 Perfumes" : selectedCategory === "All" ? "Buy BY12 Perfumes Online in Pakistan" : `Inspired Perfumes for ${selectedCategory} in Pakistan`}
               </h1>
               <p className="text-lg md:text-xl text-slate-300">{selectedCategory === "All" ? "Explore BY12 inspired fragrances, compare sizes and find your signature scent." : `Explore BY12 fragrances for ${selectedCategory.toLowerCase()}, with size options, current prices and delivery across Pakistan.`}</p>
               <nav aria-label="Perfume collections" className="mt-6 flex flex-wrap justify-center gap-4 text-accent">
@@ -419,7 +419,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
             </div>
           </div>
         </div>
-        {!initialSearch && <CollectionBuyingGuide category={selectedCategory} />}
+        {!initialSearch && <CollectionBuyingGuide category={selectedCategory} products={products} />}
       </main>
 
       <Footer />

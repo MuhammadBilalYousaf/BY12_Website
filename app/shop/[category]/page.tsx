@@ -15,7 +15,7 @@ async function collection(slug: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ category: string }> }): Promise<Metadata> {
   const { category, hasProducts } = await collection((await params).category)
-  return pageMetadata({ title: `Perfumes for ${category} in Pakistan | BY12`, description: `Explore BY12 inspired perfumes for ${category.toLowerCase()}. Compare scent profiles, sizes and current prices, with delivery across Pakistan.`, path: categoryPath(category), noindex: !hasProducts })
+  return pageMetadata({ title: `Inspired Perfumes for ${category} in Pakistan | BY12`, description: `Shop BY12 inspired perfumes for ${category.toLowerCase()} in Pakistan. Compare fragrance descriptions, bottle sizes and current prices before ordering.`, path: categoryPath(category), noindex: !hasProducts })
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {

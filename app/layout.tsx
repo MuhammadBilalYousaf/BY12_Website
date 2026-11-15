@@ -20,7 +20,6 @@ export const metadata: Metadata = {
     icon: "/tab_icon.png",
 
   },
-  keywords: ["perfumes", "luxury perfumes", "fragrances", "bilalyousaf12", "BY12", "perfume Pakistan", "men perfumes", "women perfumes", "unisex perfumes", "buy perfumes online"],
   authors: [{ name: "BY12 Perfumes" }],
   creator: "BY12 Perfumes",
   publisher: "BY12 Perfumes",
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
     url: "https://www.bilalyousaf12.store",
     siteName: "BY12 Perfumes",
     title: "BY12 Perfumes | Inspired Fragrances in Pakistan",
-    description: "Discover BY12's exclusive collection of luxury perfumes for men and women.",
+    description: "Explore BY12 inspired perfumes for men and women in Pakistan. Compare scent profiles, bottle sizes and current prices.",
     images: [
       {
         url: "/opengraph-image",
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "BY12 Perfumes | Inspired Fragrances in Pakistan",
-    description: "Discover BY12's exclusive collection of luxury perfumes.",
+    description: "Explore BY12 inspired perfumes in Pakistan, with current bottle sizes, prices and available samples.",
     images: ["/opengraph-image"],
   },
   robots: {

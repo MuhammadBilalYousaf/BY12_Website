@@ -7,18 +7,18 @@ import Testimonials from "@/components/testimonials"
 import FAQ from "@/components/faq"
 import Footer from "@/components/footer"
 import BlogSection from "@/components/blog-section"
+import PerfumeDiscovery from "@/components/perfume-discovery"
 import type { Metadata } from "next"
 import { getProducts, getPublishedBlogs, getActiveDeals } from "@/lib/catalog"
 
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "BY12 Perfumes | Inspired Fragrances in Pakistan",
+  title: "Inspired Perfumes in Pakistan | BY12 Perfumes",
   description: "Explore BY12 inspired perfumes for men and women in Pakistan. Compare Coffeeno and Ravla, choose your size and shop with Cash on Delivery.",
-  keywords: "luxury perfumes Pakistan, buy perfumes online, men perfumes, women perfumes, BY12, authentic fragrances, premium scents, perfume shop Pakistan",
   openGraph: {
-    title: "BY12 Perfumes | Inspired Fragrances in Pakistan",
-    description: "Discover BY12's exclusive collection of luxury perfumes for men and women.",
+    title: "Inspired Perfumes in Pakistan | BY12 Perfumes",
+    description: "Explore BY12 inspired perfumes for men and women in Pakistan. Compare Coffeeno and Ravla, bottle sizes and current prices.",
     url: "https://www.bilalyousaf12.store",
     siteName: "BY12 Perfumes",
     images: [
@@ -34,8 +34,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "BY12 Perfumes | Inspired Fragrances in Pakistan",
-    description: "Discover BY12's exclusive collection of luxury perfumes.",
+    title: "Inspired Perfumes in Pakistan | BY12 Perfumes",
+    description: "Explore BY12 inspired perfumes in Pakistan. Compare Coffeeno and Ravla, bottle sizes and available testers.",
     images: ["/opengraph-image"],
   },
   alternates: {
@@ -56,6 +56,7 @@ export default async function Home() {
       <Navbar />
       <Hero />
       <FeaturedProducts initialProducts={products.filter(product => product.featured).slice(0, 6)} />
+      <PerfumeDiscovery products={products.filter(product => !product.isTester)} />
       <FeaturedDeals initialDeals={deals} />
       <FeaturedTesters initialTesters={products.filter(product => product.isTester).slice(0, 4)} />
       <BlogSection initialPosts={blogs} />

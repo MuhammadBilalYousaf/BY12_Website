@@ -1,15 +1,14 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Shop Luxury Perfumes | BY12 Perfumes Collection",
-  description: "Browse our exclusive collection of luxury perfumes for men and women. Find your signature scent from premium brands at BY12 Perfumes Pakistan.",
-  keywords: "buy perfumes online Pakistan, luxury perfumes, men perfumes, women perfumes, unisex fragrances, BY12 shop",
+  title: "Buy Perfumes Online in Pakistan | BY12",
+  description: "Shop BY12 inspired perfumes for men and women in Pakistan. Compare available bottle sizes, current prices and perfume samples.",
   alternates: {
     canonical: "https://www.bilalyousaf12.store/shop",
   },
   openGraph: {
-    title: "Shop Luxury Perfumes | BY12 Perfumes Collection",
-    description: "Browse our exclusive collection of luxury perfumes for men and women.",
+    title: "Buy Perfumes Online in Pakistan | BY12",
+    description: "Shop BY12 inspired perfumes for men and women in Pakistan. Compare sizes, prices and availability.",
     type: "website",
     url: "https://www.bilalyousaf12.store/shop",
     images: ["/opengraph-image"],

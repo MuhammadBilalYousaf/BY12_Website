@@ -3,6 +3,11 @@ import { variantPrice } from "@/lib/product-pricing"
 
 export const GUIDES = [
   {
+    slug: "coffeeno-vs-ravla",
+    title: "Coffeeno vs Ravla: Compare BY12 Perfumes in Pakistan",
+    description: "Compare Coffeeno and Ravla by BY12: their inspiration references, listed scent profiles, current bottle sizes, prices and available testers in Pakistan.",
+  },
+  {
     slug: "30ml-vs-50ml-perfume",
     title: "30ml vs 50ml Perfume: Compare BY12 Sizes and Prices",
     description: "Compare BY12 bottle sizes using current prices, price per ml and availability. Choose a 30ml or 50ml fragrance for your budget and routine.",
