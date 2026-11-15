@@ -7,6 +7,7 @@ export interface SizeVariant {
   saleValue?: number // Sale value (integer only)
   saleImageUrl?: string // Optional image shown when this variant is on sale
   images?: string[] // Variant-specific gallery; not shared across variants
+  modelUrl?: string // Public GLB for this size only
 }
 
 /** Scroll-story / note pyramid data for product craftsmanship experience */

@@ -141,14 +141,14 @@ test('no note pyramid is guessed from a product name or gender', () => {
 
 function trackingFixture(addDoc) {
   const auth = { currentUser: null }
-  const stats = { warnings: 0 }
+  const stats = { warnings: 0, firestoreCalls: 0 }
   const filename = path.join(root, 'lib/tracking.ts')
   const compiled = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText
   const module = { exports: {} }
   const requireMock = spec => {
     if (spec === '@/lib/firebase') return { db: {}, auth }
     if (spec === '@/lib/tracking-access') return load('lib/tracking-access')
-    if (spec === 'firebase/firestore') return { collection: () => ({}), addDoc, serverTimestamp: () => 'timestamp' }
+    if (spec === 'firebase/firestore') return { collection: () => { stats.firestoreCalls++; return {} }, addDoc, serverTimestamp: () => 'timestamp' }
     throw new Error('Unexpected dependency: ' + spec)
   }
   const logger = { warn: () => stats.warnings++, log() {}, error() {} }
@@ -184,6 +184,14 @@ test('temporary network failures are not mistaken for permission denials', async
   await assert.rejects(fixture.api.logCustomerInteraction({ email: '', interactionType: 'page_view' }))
   assert.equal(attempts, 2)
   assert.equal(fixture.stats.warnings, 0)
+})
+
+test('payment and credential field values never reach Firestore interaction tracking', async () => {
+  const fixture = trackingFixture(async () => { throw new Error('Must not write sensitive fields') })
+  for (const field of ['cardNumber', 'cardName', 'expiryDate', 'cvv', 'CVC', 'password', 'accessToken', 'iban', 'pin']) {
+    await fixture.api.trackFormFieldChange('', field, 'test-only-value', 'checkout', undefined, 'test-guest')
+  }
+  assert.equal(fixture.stats.firestoreCalls, 0)
 })
 
 test('local Coffeeno model fallback is limited to its matching 50ml legacy source', () => {

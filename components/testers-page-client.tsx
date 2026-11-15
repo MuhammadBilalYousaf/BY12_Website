@@ -67,7 +67,7 @@ export default function TestersPageClient({ initialTesters }: { initialTesters: 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <Navbar />
-      
+
       {/* Breadcrumb with proper margin */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <PageBreadcrumb

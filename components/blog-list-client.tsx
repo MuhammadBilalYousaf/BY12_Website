@@ -61,7 +61,7 @@ export default function BlogListClient({ initialPosts }: { initialPosts: BlogPos
   }, [])
 
   const featuredPosts = blogPosts.filter(post => post.featured)
-  
+
   const filteredPosts = blogPosts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,7 +85,7 @@ export default function BlogListClient({ initialPosts }: { initialPosts: BlogPos
             <div className="absolute top-20 left-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl"></div>
           </div>
-          
+
           <div className="max-w-7xl mx-auto px-4 relative z-10">
             <div className="text-center max-w-3xl mx-auto">
               <FadeInSection delay={0.1}>
@@ -132,8 +132,8 @@ export default function BlogListClient({ initialPosts }: { initialPosts: BlogPos
             <div className="max-w-7xl mx-auto px-4">
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className="rounded-2xl overflow-hidden animate-pulse"
                     style={{
                       background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
@@ -189,7 +189,7 @@ export default function BlogListClient({ initialPosts }: { initialPosts: BlogPos
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                          
+
                           {/* Featured Badge */}
                           <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-bold rounded-full">
                             Featured
@@ -342,7 +342,7 @@ export default function BlogListClient({ initialPosts }: { initialPosts: BlogPos
                     ))}
                   </div>
                 ) : (
-                  <div 
+                  <div
                     className="text-center py-16 rounded-2xl"
                     style={{
                       background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.3) 0%, rgba(30, 41, 59, 0.3) 100%)',

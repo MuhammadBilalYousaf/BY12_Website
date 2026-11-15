@@ -226,6 +226,8 @@ export async function trackFormFieldChange(
   customerId?: string,
   guestSessionId?: string
 ): Promise<void> {
+  // Payment and credential fields must never enter interaction records.
+  if (/card|cvv|cvc|password|secret|token|expiry|expiration|iban|^pin$/i.test(fieldName)) return
   try {
     const guestId = guestSessionId || (!email ? getOrCreateGuestId() : undefined)
     const identifier = normalizeEmail(email) || guestId

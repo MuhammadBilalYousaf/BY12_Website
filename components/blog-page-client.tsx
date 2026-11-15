@@ -162,17 +162,17 @@ export default function BlogPageClient({ initialPost, recommendedProducts = [] }
           { name: post.title }
         ]}
       />
-      
+
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-4 pt-6 pb-4">
-          <PageBreadcrumb 
+          <PageBreadcrumb
             items={[
               { label: "Blog", href: "/blog" },
               { label: post.category, href: `/blog?category=${post.category}` },
               { label: post.title }
-            ]} 
+            ]}
           />
         </div>
 
@@ -187,7 +187,7 @@ export default function BlogPageClient({ initialPost, recommendedProducts = [] }
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20"></div>
-          
+
           {/* Back Button */}
           <button
             onClick={() => router.back()}
@@ -312,7 +312,7 @@ export default function BlogPageClient({ initialPost, recommendedProducts = [] }
                   }
                 `}</style>
                 <div
-                  className="blog-content prose prose-lg max-w-none prose-invert 
+                  className="blog-content prose prose-lg max-w-none prose-invert
                     prose-headings:!text-accent prose-headings:font-bold
                     prose-h1:!text-accent prose-h1:text-3xl prose-h1:mt-10 prose-h1:mb-4
                     prose-h2:!text-accent prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
@@ -351,7 +351,7 @@ export default function BlogPageClient({ initialPost, recommendedProducts = [] }
                 )}
 
                 {/* Author Box */}
-                <div 
+                <div
                   className="mt-10 p-6 rounded-2xl"
                   style={{
                     background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',

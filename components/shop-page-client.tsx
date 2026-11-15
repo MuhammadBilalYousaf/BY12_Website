@@ -32,7 +32,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
   // Fetch products from Firebase
   useEffect(() => {
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"))
-    
+
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -94,13 +94,13 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
   const handlePriceChange = (index: number, value: number) => {
     const newRange: [number, number] = [...tempPriceRange]
     newRange[index] = value
-    
+
     if (index === 0 && value > tempPriceRange[1]) {
       newRange[1] = value
     } else if (index === 1 && value < tempPriceRange[0]) {
       newRange[0] = value
     }
-    
+
     setTempPriceRange(newRange)
   }
 
@@ -114,10 +114,10 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
       <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-4 pt-6">
-          <PageBreadcrumb 
+          <PageBreadcrumb
             items={[
               { label: "Shop" }
-            ]} 
+            ]}
           />
         </div>
 
@@ -206,7 +206,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
                   {/* Price Range Filter - Mobile */}
                   <div>
                     <h4 className="text-lg font-semibold text-white mb-4">Price Range</h4>
-                    
+
                     <div className="flex justify-between items-center mb-4">
                       <div className="text-sm">
                         <span className="text-slate-400">Min: </span>
@@ -275,7 +275,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar - Filters (Desktop Only) */}
             <div className="hidden lg:block lg:col-span-1">
-              <div 
+              <div
                 className="p-6 rounded-2xl sticky top-24"
                 style={{
                   background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%)',
@@ -306,7 +306,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
                 {/* Price Range Filter */}
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Price Range</h3>
-                  
+
                   <div className="flex justify-between items-center mb-4">
                     <div className="text-sm">
                       <span className="text-slate-400">Min: </span>
@@ -406,7 +406,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
                   ))}
                 </div>
               ) : (
-                <div 
+                <div
                   className="text-center py-16 rounded-2xl"
                   style={{
                     background: 'linear-gradient(145deg, rgba(51, 65, 85, 0.3) 0%, rgba(30, 41, 59, 0.3) 100%)',
@@ -421,7 +421,7 @@ export default function ShopPageClient({ initialProducts, initialCategory = "All
         </div>
         {!initialSearch && <CollectionBuyingGuide category={selectedCategory} />}
       </main>
-      
+
       <Footer />
     </>
   )

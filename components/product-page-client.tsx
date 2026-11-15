@@ -42,7 +42,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
   const [relatedProducts, setRelatedProducts] = useState<Product[]>(initialRelatedProducts)
   const [lightboxImage, setLightboxImage] = useState<string | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  
+
   // Fetch product reviews
   const { reviews, stats: reviewStats, loading: reviewsLoading } = useProductReviews(id)
 
@@ -52,17 +52,17 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
       try {
         const productRef = doc(db, "products", id)
         const productSnap = await getDoc(productRef)
-        
+
         if (productSnap.exists()) {
           const productData = productSnap.data()
           // For testers, set inStock based on testerQuantity
           const isTester = productData.isTester === true
-          const inStockValue = isTester 
+          const inStockValue = isTester
             ? ((productData.testerQuantity ?? 0) > 0)
             : (productData.inStock ?? (productData.stock > 0))
-          
-          setProduct({ 
-            id: productSnap.id, 
+
+          setProduct({
+            id: productSnap.id,
             ...productData,
             inStock: inStockValue
           } as Product)
@@ -101,7 +101,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
           .map((doc) => ({ id: doc.id, ...doc.data() } as Product))
           .filter((p) => p.id !== product.id)
           .slice(0, 4)
-        
+
         setRelatedProducts(products)
       },
       (error) => {
@@ -155,7 +155,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
 
   const handleAddToCart = () => {
     const currentStock = getSelectedVariantStock()
-    
+
     if (currentStock <= 0) {
       setToastMessage("This size is out of stock")
       setToastType("error")
@@ -254,7 +254,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
     if (product.isTester === true) {
       return (product as any).testerQuantity ?? 0
     }
-    
+
     if (product.sizeVariants && product.sizeVariants.length > 0 && selectedSize) {
       const variant = product.sizeVariants.find(v => v.size === selectedSize)
       return variant?.stock ?? 0
@@ -268,7 +268,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
   const originalPrice = selectedVariant?.price ?? product.price
   const hasSale = Boolean(selectedVariant?.onSale) && (selectedVariant?.saleValue ?? 0) > 0
   const selectedVariantSaleImage = hasSale ? selectedVariant?.saleImageUrl?.trim() : ""
-  
+
   // Get variant images, with fallback to product images
   const variantImages = (selectedVariant?.images ?? []).filter((img): img is string => typeof img === "string" && img.trim().length > 0)
   const productImages = (product.images ?? []).filter((img): img is string => typeof img === "string" && img.trim().length > 0)
@@ -294,17 +294,17 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
           { name: product.name }
         ]}
       />
-      
+
       <Navbar />
       <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <PageBreadcrumb 
+          <PageBreadcrumb
             items={[
               { label: "Shop", href: "/shop" },
               { label: product.category, href: categoryPath(product.category) },
               { label: product.name }
-            ]} 
+            ]}
           />
         </div>
 
@@ -404,7 +404,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
                       ))}
                     </div>
                     <span className="text-sm text-slate-400">
-                      {reviewStats.totalReviews > 0 
+                      {reviewStats.totalReviews > 0
                         ? `${reviewStats.averageRating.toFixed(1)} (${reviewStats.totalReviews} reviews)`
                         : `${(product.rating || 0).toFixed(1)} (${product.reviews || 0} reviews)`
                       }
@@ -415,7 +415,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
 
               <div className="mb-8 pb-8 border-b border-slate-700">
                 {product.description ? (
-                  <div 
+                  <div
                     className="text-slate-300 text-lg mb-6 leading-relaxed prose prose-lg prose-invert max-w-none"
                     dangerouslySetInnerHTML={{ __html: product.description }}
                   />
@@ -463,7 +463,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
                     </div>
                   </div>
                 )}
-                
+
                 {/* Price */}
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <div className="text-4xl font-bold text-accent">Rs.{displayPrice.toFixed(2)}</div>
@@ -587,7 +587,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
                   <Heart size={20} fill={inWishlist ? "currentColor" : "none"} />
                   {inWishlist ? "Saved" : "Save"}
                 </button>
-                <button 
+                <button
                   onClick={handleShare}
                   className="flex-1 px-4 py-3 border-2 border-slate-600 text-white rounded-lg font-semibold hover:border-accent hover:bg-accent/10 transition flex items-center justify-center gap-2"
                 >
@@ -740,7 +740,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
                       </div>
                     </div>
                     <p className="text-slate-300 text-sm leading-relaxed">{review.comment}</p>
-                    
+
                     {/* Review Images */}
                     {review.images && review.images.length > 0 && (
                       <div className="flex gap-2 mt-3 flex-wrap">
@@ -758,7 +758,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
                         ))}
                       </div>
                     )}
-                    
+
                     <div className="flex items-center justify-between mt-3">
                       {review.createdAt && (
                         <p className="text-xs text-slate-500">
@@ -809,7 +809,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
 
       {/* Lightbox Modal for Review Images */}
       {lightboxImage && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center overflow-hidden"
           onClick={() => setLightboxImage(null)}
         >
@@ -822,7 +822,7 @@ export default function ProductPageClient({ initialProduct, initialSize, initial
           >
             ✕
           </button>
-          <div 
+          <div
             className="relative w-[90vw] h-[80vh] sm:w-[85vw] sm:h-[85vh] max-w-4xl"
             onClick={(e) => e.stopPropagation()}
           >

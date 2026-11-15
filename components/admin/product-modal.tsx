@@ -19,6 +19,7 @@ interface SizeVariant {
   saleValue?: number
   saleImageUrl?: string
   images?: string[]
+  modelUrl?: string
 }
 
 interface ProductModalProps {
@@ -60,7 +61,7 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
     baseNotes: "",
     fragranceIngredients: "",
   })
-  const [sizeVariants, setSizeVariants] = useState<SizeVariant[]>([{ size: 50, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [] }])
+  const [sizeVariants, setSizeVariants] = useState<SizeVariant[]>([{ size: 50, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [], modelUrl: "" }])
   const [variantImageInputs, setVariantImageInputs] = useState<string[]>([""])
   const [isSaving, setIsSaving] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -121,6 +122,8 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
               : index === 0 && Array.isArray(product.images)
                 ? product.images.filter((img): img is string => typeof img === "string" && img.trim().length > 0)
                 : [],
+            modelUrl: variant.modelUrl?.trim()
+              || (product.modelSize === variant.size ? product.modelUrl || "" : ""),
           }))
         setSizeVariants(mappedVariants)
         setVariantImageInputs(new Array(mappedVariants.length).fill(""))
@@ -135,6 +138,7 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
             saleValue: 0,
             saleImageUrl: "",
             images: Array.isArray(product.images) ? product.images : [],
+            modelUrl: product.modelUrl || "",
           },
         ])
         setVariantImageInputs([""])
@@ -170,7 +174,7 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
         baseNotes: "",
         fragranceIngredients: "",
       })
-      setSizeVariants([{ size: 50, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [] }])
+      setSizeVariants([{ size: 50, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [], modelUrl: "" }])
       setVariantImageInputs([""])
     }
     setNewImageUrl("")
@@ -389,7 +393,7 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.modelUrl.trim() && !isProductModelUrl(formData.modelUrl)) { setError("Enter a valid public HTTPS GLB link, or leave it empty."); return }
+    if (sizeVariants.some((variant) => (variant.modelUrl || "").trim() && !isProductModelUrl(variant.modelUrl || ""))) { setError("Each GLB link must be a public HTTPS URL, or left empty."); return }
     setError("")
     setIsSaving(true)
 
@@ -416,6 +420,7 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
           saleValue: onSale ? saleValue : 0,
           saleImageUrl: onSale ? saleImageUrl : "",
           images,
+          modelUrl: typeof v.modelUrl === "string" && isProductModelUrl(v.modelUrl) ? v.modelUrl.trim() : "",
         }
       })
     if (validVariants.length === 0) {
@@ -477,7 +482,8 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
     // Convert stock number to inStock boolean for consistency
     const productData = {
       ...formFields,
-      modelUrl: formData.modelUrl.trim(),
+      modelUrl: updatedVariants.find((variant) => variant.modelUrl)?.modelUrl || "",
+      modelSize: updatedVariants.find((variant) => variant.modelUrl)?.size || baseSize,
       price: basePrice,
       size: baseSize,
       stock: totalStock,
@@ -700,7 +706,7 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
                   onClick={() => {
                     setSizeVariants([
                       ...sizeVariants,
-                      { size: 0, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [] },
+                      { size: 0, price: 0, stock: 0, onSale: false, saleType: "percent", saleValue: 0, saleImageUrl: "", images: [], modelUrl: "" },
                     ])
                     setVariantImageInputs((prev) => [...prev, ""])
                   }}
@@ -1054,12 +1060,10 @@ export default function ProductModal({ isOpen, onClose, onSave, product, mode }:
 
             <ProductModelField
               key={product?.id || "new-product"}
-              url={formData.modelUrl}
-              size={formData.modelSize}
-              sizes={sizeVariants.map(variant => variant.size)}
+              variants={sizeVariants.map((variant) => ({ size: variant.size, modelUrl: variant.modelUrl || "" }))}
               productName={formData.name}
               disabled={isSaving}
-              onChange={(modelUrl, modelSize) => setFormData(previous => ({ ...previous, modelUrl, modelSize }))}
+              onChange={(index, modelUrl) => handleSizeVariantChange(index, "modelUrl", modelUrl)}
             />
 
             {/* Fragrance Story */}
