@@ -39,4 +39,18 @@ The suite covers 40 tests, including eleven Analytics tests for route exclusions
 
 Production deployment, live event delivery, final reporting settings and additional URL-request results are recorded after verification. A real order will not be submitted just to generate a purchase event.
 
+## Recorded account and live results
+
+- Google explicitly accepted indexing requests for the homepage, Coffeeno, Ravla and both buying guides (five confirmed requests).
+- An indexing request for `/shop/men` was initiated, but its final confirmation was not observed before browser control became unresponsive. `/shop/women` has not yet received a manual request in this session. Both are available in the submitted sitemap. Do not count these two collection requests as confirmed.
+- GA4 Realtime received `page_view`, `view_item`, `add_to_cart`, `view_cart` and `begin_checkout` from an actual live-store test. It displayed an active user in Pakistan and the Coffeeno page title. These were QA visits, not evidence of new customers.
+- The test began with an empty guest basket, added Coffeeno 30ml at Rs. 2,499, entered checkout with Rs. 250 shipping (Rs. 2,749 total), then removed the test item. The empty basket was verified afterward. No personal form data or order was submitted.
+- The initial live QA exposed duplicate view events from animated route remounts. Those historical QA counts are not revised by the fix. The fix passed 40 tests and a Vercel production build with TypeScript validation; it was promoted as `dpl_DceKmfsRXHkJdjBmGDqB17KtUJcJ` (`bilalyousaf12store-co1fswjy6-bilal-yousafs-projects.vercel.app`), source commit `38d2602`.
+- The first Analytics release (`dpl_9Rt9oHRTU34tnm3194sYqTpD4CaL`) passed all 31 live HTTP SEO checks. Final-release results are saved separately in `SEO-verification/google-setup-final-smoke.json`.
+- The final release also passed all 31 public HTTP checks after a targeted homepage recheck. The first homepage request had a transport-level fetch failure; the recheck confirmed HTTP 200, one description, a server-rendered H1 and the correct normalized www canonical. The original failure remains in the JSON report's recheck history. The root canonical's serialization without a trailing slash normalizes to the same root URL.
+- Browser control subsequently timed out and reset repeatedly. A final post-fix Realtime count comparison and the remaining Google-screen checks were not completed. The purchase event's success/failure and deduplication behavior was tested with isolated mocks; a real purchase receipt in Analytics is not claimed.
+- Reporting settings displayed `Success.` after saving PKR, Pakistan Time, the owner-confirmed employee range and the business objectives. Screenshots are saved locally in `SEO-verification/search-console-sitemap-success.jpg`, `homepage-indexing-requested.jpg`, `coffeeno-indexing-requested.jpg` and `ga4-pkr-pakistan-settings.jpg`.
+
+No Google account permissions, API secrets, advertising links or project service-account grants were created. Search Console indexing and ranking changes still depend on Google's subsequent processing. The optional product/merchant structured-data warnings should be reviewed separately using verified shipping/return/product facts.
+
 The implementation follows Google's [manual pageview guidance](https://developers.google.com/analytics/devguides/collection/ga4/views) and [ecommerce event specification](https://developers.google.com/analytics/devguides/collection/ga4/ecommerce).
