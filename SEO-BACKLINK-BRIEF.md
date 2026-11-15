@@ -2,6 +2,8 @@
 
 ## Status
 
+Latest verification and delivery diagnostics are recorded in [SEO-BACKLINK-VERIFICATION.md](SEO-BACKLINK-VERIFICATION.md): all 183 current house-directory entries were checked with no BY12 match; the email fallback could not authenticate using either local or production business-mail configuration. A draft exists, but no approved/live backlink is counted.
+
 Two relevant fragrance-directory routes were researched using their own published guidance. The owner subsequently approved the exact ScentReviews draft below, and one submission was attempted. **Delivery/acceptance is unverified, no listing is approved, and no new backlink is claimed.** The service returned HTML rather than its expected JSON confirmation; a read-only probe later returned a 403 Cloudflare challenge. No challenge was bypassed and no duplicate request was sent. Evidence is in `SEO-verification/scentreviews-submission.json` and `scentreviews-service-probe.json`. A directory entry can provide discovery or referral value; acceptance, a crawlable outbound link and any search effect remain separate outcomes.
 
 The public brand/domain search sample did not establish a reliable backlink count. A complete baseline needs Search Console's Links report or a connected backlink provider; absence from a search sample is not evidence of zero backlinks. Windsor.ai currently exposes the selected GA4 property, but no connected Search Console, Ahrefs or Semrush account was returned.
