@@ -1,5 +1,7 @@
 # BY12 SEO production release — 15 November 2026
 
+Historical phase-1/2 release record. The Google-account limitations below were subsequently superseded by the verified results in [SEO-GOOGLE-SETUP.md](SEO-GOOGLE-SETUP.md). Later maintenance is tracked in [SEO-MAINTENANCE.md](SEO-MAINTENANCE.md).
+
 The phase-1 technical SEO and phase-2 buying-content changes were deployed to `https://www.bilalyousaf12.store` through the existing Vercel project. This release supersedes the earlier reports' local-only status.
 
 ## Release record

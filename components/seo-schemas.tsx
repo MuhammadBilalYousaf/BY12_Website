@@ -30,7 +30,7 @@ export function OrganizationSchema({
   name = "BY12 Perfumes",
   url = "https://www.bilalyousaf12.store",
   logo = "https://www.bilalyousaf12.store/logo.png",
-  description = "Premium luxury perfumes and fragrances in Pakistan. Authentic scents for men and women.",
+  description = "Shop BY12 inspired perfumes for men and women in Pakistan. Compare fragrances, bottle sizes and testers.",
   email = "info.bilalyousaf12@gmail.com",
   phone = "+92 311 5318776",
   address = {
@@ -62,7 +62,13 @@ export function OrganizationSchema({
       addressCountry: address.country,
       postalCode: address.postalCode
     },
-    sameAs: socialLinks
+    sameAs: socialLinks,
+    // Link to the full policy so its eligibility conditions and shipping-cost
+    // exceptions stay intact rather than implying unconditional free returns.
+    hasMerchantReturnPolicy: {
+      "@type": "MerchantReturnPolicy",
+      merchantReturnLink: new URL("/refund", url).href
+    }
   }
 
   return (
@@ -82,7 +88,7 @@ export interface WebsiteSchemaProps {
 export function WebsiteSchema({
   name = "BY12 Perfumes",
   url = "https://www.bilalyousaf12.store",
-  description = "Premium luxury perfumes and fragrances in Pakistan"
+  description = "Shop BY12 inspired perfumes for men and women in Pakistan. Compare fragrances, bottle sizes and testers."
 }: WebsiteSchemaProps) {
   const schema = {
     "@context": "https://schema.org",

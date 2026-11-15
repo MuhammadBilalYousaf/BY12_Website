@@ -22,7 +22,7 @@ async function check(name, action) {
 const count = (html, expression) => [...html.matchAll(expression)].length
 const h1 = html => /<h1\b/.test(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''))
 
-for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeeno_impression_of_khamrah_qahwa', '/product/ravla_inspired_by_gucci_flora', '/blog/ke8yY9PLMbeXhUbEli7Z', '/deals/coffeeno-double-dose-50ml-30ml-oud-coffee-duo-by-by12', '/guides', '/guides/30ml-vs-50ml-perfume', '/guides/inspired-perfumes-pakistan']) {
+for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeeno_impression_of_khamrah_qahwa', '/product/ravla_inspired_by_gucci_flora', '/blog/ke8yY9PLMbeXhUbEli7Z', '/deals/coffeeno-double-dose-50ml-30ml-oud-coffee-duo-by-by12', '/guides', '/guides/30ml-vs-50ml-perfume', '/guides/inspired-perfumes-pakistan', '/refund']) {
   await check('HTML SEO ' + route, async () => {
     const { response, html } = await get(route)
     assert.equal(response.status, 200)
@@ -33,6 +33,19 @@ for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeen
     if (route.includes('/product/')) assert.ok(html.includes('"@type":"ProductGroup"'), 'server ProductGroup missing')
   })
 }
+await check('Organization references the published return policy without inventing terms', async () => {
+  const { response, html } = await get('/')
+  assert.equal(response.status, 200)
+  const schemas = [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(match => JSON.parse(match[1]))
+  const organization = schemas.find(schema => schema['@type'] === 'Organization')
+  assert.ok(organization, 'Organization schema missing')
+  assert.equal(organization['@id'], 'https://www.bilalyousaf12.store/#organization')
+  assert.match(organization.description, /inspired perfumes/i)
+  assert.deepEqual(organization.hasMerchantReturnPolicy, {
+    '@type': 'MerchantReturnPolicy',
+    merchantReturnLink: 'https://www.bilalyousaf12.store/refund',
+  })
+})
 for (const route of ['/product/seo-nonexistent-20261115', '/blog/seo-nonexistent-20261115', '/deals/seo-nonexistent-20261115', '/shop/seo-nonexistent-20261115', '/guides/seo-nonexistent-20261115']) {
   await check('Real 404 ' + route, async () => assert.equal((await get(route)).response.status, 404))
 }
