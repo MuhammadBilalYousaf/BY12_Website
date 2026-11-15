@@ -2,7 +2,7 @@
 
 ## Status
 
-Two relevant fragrance-directory routes were researched using their own published guidance. **No request has been sent, no listing is approved, and no new backlink is claimed.** A directory entry can provide discovery or referral value; acceptance, a crawlable outbound link and any search effect remain separate outcomes.
+Two relevant fragrance-directory routes were researched using their own published guidance. The owner subsequently approved the exact ScentReviews draft below, and one submission was attempted. **Delivery/acceptance is unverified, no listing is approved, and no new backlink is claimed.** The service returned HTML rather than its expected JSON confirmation; a read-only probe later returned a 403 Cloudflare challenge. No challenge was bypassed and no duplicate request was sent. Evidence is in `SEO-verification/scentreviews-submission.json` and `scentreviews-service-probe.json`. A directory entry can provide discovery or referral value; acceptance, a crawlable outbound link and any search effect remain separate outcomes.
 
 The public brand/domain search sample did not establish a reliable backlink count. A complete baseline needs Search Console's Links report or a connected backlink provider; absence from a search sample is not evidence of zero backlinks. Windsor.ai currently exposes the selected GA4 property, but no connected Search Console, Ahrefs or Semrush account was returned.
 
@@ -10,7 +10,7 @@ The public brand/domain search sample did not establish a reliable backlink coun
 
 | Priority | Opportunity and evidence | Fit / next action | Status |
 |---|---|---|---|
-| 1 | [ScentReviews.pk contact](https://scentreviews.pk/contact), [about](https://scentreviews.pk/about) | Pakistan-focused fragrance discovery. Its own guidance welcomes perfume-house additions and describes free house listings and links to official websites. The draft below requests ordinary editorial inclusion, without a paid placement. | Draft ready; not submitted. Duplicate check before sending; editorial acceptance required. |
+| 1 | [ScentReviews.pk contact](https://scentreviews.pk/contact), [about](https://scentreviews.pk/about) | Pakistan-focused fragrance discovery. Its own guidance welcomes perfume-house additions and describes free house listings and links to official websites. The draft below requests ordinary editorial inclusion, without a paid placement. | Owner-approved submission attempted; acceptance unverified. No duplicate send; editorial acceptance/public listing still required. |
 | 2 | [Basenotes product inclusion](https://basenotes.com/knowledge-base/how-can-we-get-our-products-listed-in-the-directory.75/), [contributor guide](https://basenotes.com/knowledge-base/starter-guide-for-basenotes-directory-contributors.88/) | Official guidance welcomes brand/product submissions. Current contribution route requires an account and editorial review. Submit only supported brand/product facts; their field help says not to guess notes, release year or perfumer. | Fact sheet ready; account/permission and eligibility review needed. No submission or guarantee of inclusion. |
 
 Sources were inspected on 16 November. ScentReviews' own material describes ordinary free listings separately from paid promotional options. No paid option was selected. Basenotes' older inclusion guidance and newer contributor guide describe different submission routes; confirm the current route when an owner account is available.
@@ -62,4 +62,4 @@ After an authorized submission, record the date, destination, submitted text and
 
 ## Boundaries
 
-This draft is reviewable work, not an authorization to send external messages. The owner's specific go-ahead is needed to send the contact-form request on the brand's behalf. No review is written as a customer and no product is exchanged for an unqualified ranking link. Google describes [link-spam practices and qualifying sponsored links](https://developers.google.com/search/docs/essentials/spam-policies#link-spam).
+The owner specifically approved sending this one contact-form request on the brand's behalf. That approval does not authorize unrelated outreach, paid placements, account creation, repeated submissions or fabricated customer reviews. No product is exchanged for an unqualified ranking link. Google describes [link-spam practices and qualifying sponsored links](https://developers.google.com/search/docs/essentials/spam-policies#link-spam).

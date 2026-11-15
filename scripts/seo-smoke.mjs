@@ -40,7 +40,10 @@ for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeen
       assert.ok(html.includes(patch.fields.description.split('.')[0]), 'updated product introduction missing from server HTML')
     }
     const article = editorialPlan.patches.find(patch => route === `/blog/${patch.id}`)
-    if (article) assert.ok(html.includes(`<title>${article.fields.title} | BY12 Perfumes</title>`), 'reviewed article metadata missing')
+    if (article) {
+      const title = /\bBY12\b/i.test(article.fields.title) ? article.fields.title : `${article.fields.title} | BY12 Perfumes`
+      assert.ok(html.includes(`<title>${title}</title>`), 'reviewed article metadata missing')
+    }
   })
 }
 await check('Homepage preloads desktop artwork only for desktop and defers blog artwork', async () => {

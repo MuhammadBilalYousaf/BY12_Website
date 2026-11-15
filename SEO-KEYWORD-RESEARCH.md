@@ -1,5 +1,7 @@
 # BY12 keyword research and implementation — 16 November 2026
 
+Subsequent release: the remaining three articles have now been factually reviewed and rewritten, speed diagnostics/fixes were deployed, and Windsor.ai reporting access was checked. Current status is in [SEO-GROWTH-REVIEW.md](SEO-GROWTH-REVIEW.md); the outstanding-work paragraph below is preserved as this earlier release's history.
+
 This release targets relevant perfume shopping, BY12 product names, inspiration references, samples and buying decisions. It follows 23 public search queries, competitor-page inspection and a read of BY12's actual public catalog fields. The search sample is not a Pakistan-localized Google rank report. Search volume, keyword difficulty and current BY12 positions were not obtained and are not invented.
 
 ## Findings and decisions

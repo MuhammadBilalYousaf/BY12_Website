@@ -41,11 +41,26 @@ Concrete fixes:
 
 The changes follow [Next's Image/art-direction documentation](https://nextjs.org/docs/app/api-reference/components/image), [lazy-loading guidance](https://nextjs.org/docs/app/guides/lazy-loading), and Google's [LCP loading-priority guidance](https://web.dev/articles/optimize-lcp). A true browser/field performance baseline still requires an available measurement service or functioning browser capture.
 
+### After-release measurement
+
+The same HTTP/resource diagnostic ran after promotion, with evidence saved as `SEO-verification/performance-after-speed-fixes.json`:
+
+| Route | After median headers | After median complete HTML | Script bytes before → after |
+|---|---:|---:|---:|
+| Homepage | 487 ms | 702 ms | 1,254,948 → 1,255,473 |
+| Shop | 421 ms | 513 ms | 1,223,315 → 1,223,446 |
+| Coffeeno | 406 ms | 587 ms | 1,372,108 → 1,247,198 |
+| Ravla | 402 ms | 609 ms | 1,372,108 → 1,247,198 |
+
+Both product pages' initial HTML-listed script payload decreased by **124,910 decoded bytes (9.1%)**. Optional story code still loads separately when mounted, so this is a loading-priority/code-splitting improvement, not a claim that a full visit downloads 9.1% less overall or that rendering is 9.1% faster. Homepage/shop payloads are essentially unchanged. Latencies varied; these few environment-specific samples do not establish that the code caused a global speed improvement. The live preload checks confirm that mobile no longer receives an unconditional desktop-artwork preload and the below-fold blog artwork no longer competes for preload priority.
+
 ## Backlink work
 
 The researched opportunities, source links, fact sheet and complete ScentReviews submission draft are in [SEO-BACKLINK-BRIEF.md](SEO-BACKLINK-BRIEF.md). ScentReviews publishes a relevant ordinary/free perfume-house listing route. Basenotes publishes brand/product contribution guidance, with editorial review and account requirements. Neither constitutes an approved listing yet.
 
-A specific approval was requested for the ready-to-review ScentReviews contact-form message because it represents BY12 to a third party. No message, account creation, sponsored placement, product shipment or backlink purchase was performed as part of preparing this brief. Submission status is updated only after a verified result. Search sampling is not a full backlink-count baseline.
+The owner explicitly approved sending the reviewed ScentReviews free-listing request. Its actual public contact form was inspected, and the one approved request was attempted through the same form service endpoint and fields. The public routing value was not printed or committed. No browser session, account credential, paid placement, review or additional message was used.
+
+The submission returned HTML instead of the expected JSON confirmation, so acceptance/delivery is **unverified**, not successful. The original attempt record is `SEO-verification/scentreviews-submission.json`; no duplicate was sent. A subsequent read-only GET to the service returned HTTP 403 with a “Just a moment...” Cloudflare challenge. That probe identifies a current service barrier but does not retroactively establish the earlier POST's outcome. No challenge was bypassed. There is no approved/public listing or new verified backlink yet. Search sampling is not a full backlink-count baseline.
 
 ## Google reporting and Windsor.ai setup
 
@@ -66,6 +81,9 @@ The existing Firebase service-account read-only Google API attempts also returne
 ## Validation and release status
 
 - All 50 tests passed, including actual hero markup and catalog backup/concurrency/rollback safeguards. Standalone TypeScript validation passed.
-- Vercel build, article publication, after-fix diagnostics and public regression results are recorded after verification.
+- The Vercel production build passed compilation and TypeScript validation. Source commit `28b1861` was promoted as `dpl_48FG3XnK1vunm4DMdog7dVN7TBhu`, `bilalyousaf12store-7x69fhje9-bilal-yousafs-projects.vercel.app`.
+- All three editorial documents were published successfully at `2026-11-15T20:18:01.220Z` (16 November in Pakistan). IDs, publication state and original image/author/creation fields were not replaced; the narrow update payload changes copy fields and actual modification time only.
+- All 44 live HTTP checks passed after one targeted assertion correction/recheck. The first run passed 43/44: the sample-guide title already contained BY12, but the test incorrectly demanded an extra BY12 suffix. The application output was correct. The assertion was fixed, and the recheck verified the title, single main heading, description and revised article section. The original failure and its reason remain in `SEO-verification/growth-review-live-smoke.json` under `rechecks`.
+- The live checks also cover desktop-only hero preload media, deferred blog artwork, product descriptions/schema, all three reviewed article pages, canonical/sitemap/robots behavior, real 404s, size links, model bytes and anonymous upload rejection. No real order was submitted; a fresh browser interaction/visual pass remains unverified.
 - Application rollback target before these changes: `dpl_46fArWuiSy4Q4zH9xiY3WhDz9agY`, `bilalyousaf12store-rk6cp2lm8-bilal-yousafs-projects.vercel.app`.
 - Editorial preview: `node scripts/seo-catalog-patch.cjs --plan=editorial`. Apply the reviewed preview: append `--apply`. Revert only this editorial release, if its copy is still current: append `--rollback`. Original fields are in `SEO-verification/editorial-content-preview.json`. Application and CMS rollback are separate.

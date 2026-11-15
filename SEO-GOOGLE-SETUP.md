@@ -1,5 +1,7 @@
 # BY12 Search Console and Google Analytics setup
 
+Subsequent reporting update, 16 November: Windsor.ai now exposes the correct GA4 property `512618134` (`by12-b3606`). The last-seven-day overview, one wider 28-day read and a recent event read completed with empty data; these are not measured zero-traffic results or a final Realtime validation. Search Console remains absent from the connected-account list after a recheck; the owner was given the actual provider connection link and instructions to authorize/select the property and Finish. See [SEO-GROWTH-REVIEW.md](SEO-GROWTH-REVIEW.md) for current evidence and limitations. Earlier in-app Realtime observations below remain historical verified results.
+
 Account access was verified in the authenticated in-app browser on 15 November 2026. This supersedes the access limitation recorded in `SEO-RELEASE.md`; the project service account itself was not granted any new permissions.
 
 ## Verified Google configuration
