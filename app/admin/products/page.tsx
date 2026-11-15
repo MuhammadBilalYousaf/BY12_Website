@@ -38,7 +38,7 @@ export default function AdminProducts() {
     setIsModalOpen(true)
   }
 
-  const handleSaveProduct = async (productData: Omit<Product, "id" | "createdAt" | "updatedAt">) => {
+  const handleSaveProduct = async (productData: Omit<import("@/lib/types").Product, "id" | "createdAt" | "updatedAt">) => {
     if (modalMode === "add") {
       return await addProduct(productData)
     } else if (selectedProduct) {

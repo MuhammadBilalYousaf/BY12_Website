@@ -399,7 +399,7 @@ export default function TesterRequestPage() {
                             checked={formData.fragrancePreferences.includes(pref)}
                             onChange={(e) => {
                               const val = e.target.value
-                              const prefs = formData.fragrancePreferences.split(", ").filter(p => p)
+                              let prefs = formData.fragrancePreferences.split(", ").filter(p => p)
                               if (e.target.checked) {
                                 prefs.push(val)
                               } else {

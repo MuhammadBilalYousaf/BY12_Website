@@ -1,210 +1,24 @@
-import { MetadataRoute } from "next"
-import { adminDb } from "@/lib/firebase-admin"
+import type { MetadataRoute } from "next"
+import { getProducts, getPublishedBlogs, getActiveDeals } from "@/lib/catalog"
+import { absoluteUrl, categoryPath, dealPath, isoDate, CATEGORIES } from "@/lib/seo"
+import { GUIDES } from "@/lib/buying-guide"
 
-const BASE_URL = "https://bilalyousaf12.store"
+export const dynamic = "force-dynamic"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const currentDate = new Date().toISOString()
-
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: BASE_URL,
-      lastModified: currentDate,
-      changeFrequency: "daily",
-      priority: 1.0,
-    },
-    {
-      url: `${BASE_URL}/shop`,
-      lastModified: currentDate,
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE_URL}/blog`,
-      lastModified: currentDate,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/deals`,
-      lastModified: currentDate,
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
-      url: `${BASE_URL}/about`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/contact`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/track-order`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${BASE_URL}/privacy`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.4,
-    },
-    {
-      url: `${BASE_URL}/terms`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.4,
-    },
-    {
-      url: `${BASE_URL}/refund`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.4,
-    },
+  // Backend failures must not silently publish an incomplete sitemap.
+  const [products, blogs, deals] = await Promise.all([getProducts(), getPublishedBlogs(), getActiveDeals()])
+  const staticPaths = ["/", "/shop", "/blog", "/guides", ...GUIDES.map(guide => `/guides/${guide.slug}`), "/deals", "/testers", "/about", "/contact", "/privacy", "/terms", "/refund"]
+  const dated = (url: string, value: any) => {
+    const modified = isoDate(value)
+    return { url: absoluteUrl(url), ...(modified ? { lastModified: modified } : {}) }
+  }
+  const entries: MetadataRoute.Sitemap = [
+    ...staticPaths.map(url => ({ url: absoluteUrl(url) })),
+    ...CATEGORIES.filter(category => products.some(product => !product.isTester && product.category === category)).map(category => ({ url: absoluteUrl(categoryPath(category)) })),
+    ...products.map(product => dated("/product/" + product.id, product.updatedAt || product.createdAt)),
+    ...blogs.map(blog => dated("/blog/" + blog.id, blog.updatedAt || blog.createdAt)),
+    ...deals.map(deal => dated(dealPath(deal), deal.updatedAt || deal.createdAt)),
   ]
-
-  // Dynamic product pages
-  let productPages: MetadataRoute.Sitemap = []
-  try {
-    if (adminDb) {
-      const productsSnapshot = await adminDb
-        .collection("products")
-        .where("inStock", "==", true)
-        .get()
-
-      productPages = productsSnapshot.docs.map((doc) => {
-        const data = doc.data()
-        return {
-          url: `${BASE_URL}/product/${doc.id}`,
-          lastModified: data.updatedAt?.toDate?.()?.toISOString() || currentDate,
-          changeFrequency: "weekly" as const,
-          priority: 0.8,
-        }
-      })
-    }
-  } catch (error) {
-    console.error("Error fetching products for sitemap:", error)
-  }
-
-  // Dynamic blog pages
-  let blogPages: MetadataRoute.Sitemap = []
-  try {
-    if (adminDb) {
-      const blogsSnapshot = await adminDb
-        .collection("blogs")
-        .where("isPublished", "==", true)
-        .get()
-
-      blogPages = blogsSnapshot.docs.map((doc) => {
-        const data = doc.data()
-        return {
-          url: `${BASE_URL}/blog/${doc.id}`,
-          lastModified: data.updatedAt?.toDate?.()?.toISOString() || 
-                       data.publishedAt?.toDate?.()?.toISOString() || 
-                       currentDate,
-          changeFrequency: "monthly" as const,
-          priority: 0.7,
-        }
-      })
-    }
-  } catch (error) {
-    console.error("Error fetching blogs for sitemap:", error)
-  }
-
-  // Dynamic deal pages
-  let dealPages: MetadataRoute.Sitemap = []
-  try {
-    if (adminDb) {
-      const dealsSnapshot = await adminDb
-        .collection("deals")
-        .where("isActive", "==", true)
-        .get()
-
-      dealPages = dealsSnapshot.docs.map((doc) => {
-        const data = doc.data()
-        return {
-          url: `${BASE_URL}/deals/${doc.id}`,
-          lastModified: data.updatedAt?.toDate?.()?.toISOString() || currentDate,
-          changeFrequency: "daily" as const,
-          priority: 0.75,
-        }
-      })
-    }
-  } catch (error) {
-    console.error("Error fetching deals for sitemap:", error)
-  }
-
-  // Dynamic category pages
-  let categoryPages: MetadataRoute.Sitemap = []
-  try {
-    if (adminDb) {
-      const categoriesSnapshot = await adminDb
-        .collection("categories")
-        .get()
-
-      categoryPages = categoriesSnapshot.docs.map((doc) => {
-        const data = doc.data()
-        const categoryName = data.name || doc.id
-        const slug = categoryName.toLowerCase().replace(/\s+/g, "-")
-        return {
-          url: `${BASE_URL}/shop/${slug}`,
-          lastModified: data.updatedAt?.toDate?.()?.toISOString() || currentDate,
-          changeFrequency: "weekly" as const,
-          priority: 0.8,
-        }
-      })
-    }
-  } catch (error) {
-    console.error("Error fetching categories for sitemap:", error)
-  }
-
-  // Additional utility pages
-  const utilityPages: MetadataRoute.Sitemap = [
-    {
-      url: `${BASE_URL}/wishlist`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/cart`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/checkout`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/orders`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${BASE_URL}/profile`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-  ]
-
-  return [
-    ...staticPages,
-    ...productPages,
-    ...blogPages,
-    ...dealPages,
-    ...categoryPages,
-    ...utilityPages,
-  ]
+  return [...new Map(entries.map(entry => [entry.url, entry])).values()]
 }

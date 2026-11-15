@@ -1,3 +1,11 @@
+import type { Product } from "@/lib/types"
+import { productStructuredData } from "@/lib/product-schema"
+import { jsonLd } from "@/lib/seo"
+
+export function CatalogProductSchema({ product, rating, reviewCount }: { product: Product; rating?: number; reviewCount?: number }) {
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productStructuredData(product, rating, reviewCount)) }} />
+}
+
 // JSON-LD Schema Components for SEO
 // These components add structured data markup for search engines
 
@@ -20,8 +28,8 @@ export interface OrganizationSchemaProps {
 
 export function OrganizationSchema({
   name = "BY12 Perfumes",
-  url = "https://bilalyousaf12.store",
-  logo = "https://bilalyousaf12.store/favicon.ico",
+  url = "https://www.bilalyousaf12.store",
+  logo = "https://www.bilalyousaf12.store/logo.png",
   description = "Premium luxury perfumes and fragrances in Pakistan. Authentic scents for men and women.",
   email = "info.bilalyousaf12@gmail.com",
   phone = "+92 311 5318776",
@@ -32,13 +40,14 @@ export function OrganizationSchema({
     country: "Pakistan"
   },
   socialLinks = [
-    "https://www.facebook.com/by12perfumes",
-    "https://www.instagram.com/by12perfumes"
+    "https://web.facebook.com/profile.php?id=61586869565572",
+    "https://www.instagram.com/bilalyousaf12.pk/"
   ]
 }: OrganizationSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${url}/#organization`,
     name,
     url,
     logo,
@@ -59,7 +68,7 @@ export function OrganizationSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
     />
   )
 }
@@ -72,7 +81,7 @@ export interface WebsiteSchemaProps {
 
 export function WebsiteSchema({
   name = "BY12 Perfumes",
-  url = "https://bilalyousaf12.store",
+  url = "https://www.bilalyousaf12.store",
   description = "Premium luxury perfumes and fragrances in Pakistan"
 }: WebsiteSchemaProps) {
   const schema = {
@@ -94,7 +103,7 @@ export function WebsiteSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
     />
   )
 }
@@ -115,13 +124,13 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://bilalyousaf12.store"
+        item: "https://www.bilalyousaf12.store"
       },
       ...items.map((item, index) => ({
         "@type": "ListItem",
         position: index + 2,
         name: item.name,
-        ...(item.url && { item: `https://bilalyousaf12.store${item.url}` })
+        ...(item.url && { item: `https://www.bilalyousaf12.store${item.url}` })
       }))
     ]
   }
@@ -129,7 +138,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
     />
   )
 }
@@ -203,7 +212,7 @@ export function ProductSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
     />
   )
 }
@@ -232,7 +241,7 @@ export function FAQSchema({ questions }: FAQSchemaProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
     />
   )
 }
@@ -271,7 +280,7 @@ export function BlogPostSchema({
       name: "BY12 Perfumes",
       logo: {
         "@type": "ImageObject",
-        url: "https://bilalyousaf12.store/favicon.ico"
+        url: "https://www.bilalyousaf12.store/logo.png"
       }
     },
     datePublished,
@@ -285,7 +294,7 @@ export function BlogPostSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
     />
   )
 }
@@ -306,7 +315,7 @@ export interface LocalBusinessSchemaProps {
 
 export function LocalBusinessSchema({
   name = "BY12 Perfumes",
-  url = "https://bilalyousaf12.store",
+  url = "https://www.bilalyousaf12.store",
   phone = "+92 311 5318776",
   email = "info.bilalyousaf12@gmail.com",
   address = {
@@ -315,7 +324,7 @@ export function LocalBusinessSchema({
     state: "Punjab",
     country: "Pakistan"
   },
-  priceRange = "Rs. 1000 - Rs. 50000"
+  priceRange
 }: LocalBusinessSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
@@ -332,14 +341,13 @@ export function LocalBusinessSchema({
       addressCountry: address.country
     },
     priceRange,
-    openingHours: "Mo-Su 10:00-22:00",
     paymentAccepted: "Cash on Delivery"
   }
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
     />
   )
 }

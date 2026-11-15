@@ -35,6 +35,8 @@ function initializeFirebaseAdmin() {
       })
     }
     adminDb = getFirestore(adminApp)
+    // Use HTTP for catalog reads; avoid eagerly loading gRPC in serverless deployments.
+    adminDb.settings({ preferRest: true })
   } catch (error) {
     console.error("Failed to initialize Firebase Admin:", error)
     adminApp = undefined

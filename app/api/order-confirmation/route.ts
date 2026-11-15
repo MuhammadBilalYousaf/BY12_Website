@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
                         <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                           <tr>
                             <td style="background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); border-radius: 12px; padding: 15px 40px;">
-                              <a href="https://bilalyousaf12.store/track-order" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 16px;">Track Your Order</a>
+                              <a href="https://www.bilalyousaf12.store/track-order" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 16px;">Track Your Order</a>
                             </td>
                           </tr>
                         </table>
@@ -267,9 +267,9 @@ export async function POST(request: NextRequest) {
                           DHA Phase 8, Eden City, Pakistan
                         </p>
                         <p style="color: #64748b; font-size: 11px; margin: 0;">
-                          <a href="https://bilalyousaf12.store/unsubscribe?email=${encodeURIComponent(customerEmail)}" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
+                          <a href="https://www.bilalyousaf12.store/unsubscribe?email=${encodeURIComponent(customerEmail)}" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
                           <span style="margin: 0 8px;">|</span>
-                          <a href="https://bilalyousaf12.store/privacy" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a>
+                          <a href="https://www.bilalyousaf12.store/privacy" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a>
                         </p>
                       </td>
                     </tr>
@@ -390,7 +390,7 @@ export async function POST(request: NextRequest) {
                         <table cellpadding="0" cellspacing="0" style="margin: 25px 0 0;">
                           <tr>
                             <td style="background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); border-radius: 8px; padding: 12px 25px;">
-                              <a href="https://bilalyousaf12.store/admin/orders" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 14px;">View in Admin Portal</a>
+                              <a href="https://www.bilalyousaf12.store/admin/orders" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 14px;">View in Admin Portal</a>
                             </td>
                           </tr>
                         </table>

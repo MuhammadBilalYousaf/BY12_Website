@@ -26,7 +26,7 @@ export const faqItems: FAQItem[] = [
   {
     question: "Do you offer samples?",
     answer:
-      "Yes! We offer sample sizes for most of our fragrances. You can purchase sample sets or request free samples with your order. This is a great way to try before committing to a full-size bottle.",
+      "Visit our Testers collection to check available samples, the size listed on each product and current stock. Delivery charges apply to free testers and are shown at checkout.",
   },
   {
     question: "How should I store my perfume?",
@@ -36,7 +36,7 @@ export const faqItems: FAQItem[] = [
   {
     question: "Are your perfumes authentic?",
     answer:
-      "Absolutely! All our perfumes are 100% authentic and sourced directly from authorized distributors. We guarantee the quality and authenticity of every product we sell.",
+      "BY12 sells its own inspired fragrances. Designer fragrance names describe scent inspiration; the product brand you receive is BY12.",
   },
   {
     question: "What payment methods do you accept?",

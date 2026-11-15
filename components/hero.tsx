@@ -43,17 +43,17 @@ export default function Hero() {
 
           <HeroReveal delay={0.18} blur>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Discover Your{" "}
+              Inspired{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-yellow-400 to-accent">
-                Signature
+                Perfumes
               </span>{" "}
-              Scent
+              in Pakistan
             </h1>
           </HeroReveal>
 
           <HeroReveal delay={0.3} blur={false}>
             <p className="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-xl">
-              Experience the essence of luxury with our handpicked collection of premium fragrances from around the world.
+              Discover BY12 inspired fragrances for everyday confidence. Explore our scents, choose your size and order across Pakistan.
             </p>
           </HeroReveal>
 

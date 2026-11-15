@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from "react"
 import ProductModelCanvas from "@/components/product-model-canvas"
 import { ShoppingCart, Sparkles } from "lucide-react"
 import gsap from "gsap"
+import { CSSPlugin } from "gsap/CSSPlugin"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { listedNotes } from "@/lib/buying-guide"
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(CSSPlugin, ScrollTrigger)
 
 export interface PerfumeScrollStoryProps {
   productName: string
   modelUrl: string
+  fallbackModelUrl?: string
   brand: string
   category?: string
   descriptionExcerpt?: string
@@ -50,65 +53,9 @@ function accentForIngredient(name: string, index: number): string {
   return INGREDIENT_ACCENTS[key] || ACCENT_PALETTE[index % ACCENT_PALETTE.length]
 }
 
-function getCategoryFallback(category?: string, productName?: string): {
-  notes: NotePyramid
-  ingredients: Ingredient[]
-  fragranceLine: string
-} {
-  const cat = (category || "").toLowerCase()
-  const name = (productName || "").toLowerCase()
-
-  if (cat.includes("men") || name.includes("oud") || name.includes("noir")) {
-    return {
-      fragranceLine: "A composed trail of spice, woods, and quiet confidence.",
-      notes: {
-        top: ["Bergamot", "Black Pepper"],
-        middle: ["Cedar", "Lavender"],
-        base: ["Oud", "Amber", "Musk"],
-      },
-      ingredients: [
-        { name: "Oud", accent: "#c4a574" },
-        { name: "Amber", accent: "#d4af37" },
-        { name: "Cedar", accent: "#8b7355" },
-        { name: "Bergamot", accent: "#e8d56a" },
-        { name: "Musk", accent: "#b8a99a" },
-      ],
-    }
-  }
-
-  if (cat.includes("women") || name.includes("rose") || name.includes("bloom")) {
-    return {
-      fragranceLine: "A luminous bloom wrapped in warmth and soft radiance.",
-      notes: {
-        top: ["Bergamot", "Peony"],
-        middle: ["Rose", "Jasmine"],
-        base: ["Vanilla", "Sandalwood"],
-      },
-      ingredients: [
-        { name: "Rose", accent: "#e8a0bf" },
-        { name: "Vanilla", accent: "#e8d5a3" },
-        { name: "Jasmine", accent: "#f5f0e6" },
-        { name: "Bergamot", accent: "#e8d56a" },
-        { name: "Amber", accent: "#d4af37" },
-      ],
-    }
-  }
-
-  return {
-    fragranceLine: "A balanced signature — bright at first, enduring at the close.",
-    notes: {
-      top: ["Bergamot", "Citrus"],
-      middle: ["Iris", "White Woods"],
-      base: ["Amber", "Vanilla", "Musk"],
-    },
-    ingredients: [
-      { name: "Bergamot", accent: "#e8d56a" },
-      { name: "Amber", accent: "#d4af37" },
-      { name: "Vanilla", accent: "#e8d5a3" },
-      { name: "Iris", accent: "#c9b8d4" },
-      { name: "Musk", accent: "#b8a99a" },
-    ],
-  }
+function getCategoryFallback(_category?: string, _productName?: string): { notes: NotePyramid; ingredients: Ingredient[]; fragranceLine: string } {
+  // A category/name cannot establish the formulation. Use only catalog-supplied notes.
+  return { notes: { top: [], middle: [], base: [] }, ingredients: [], fragranceLine: "Find your signature scent." }
 }
 
 function resolveStoryContent(
@@ -126,14 +73,10 @@ function resolveStoryContent(
 
   return {
     fragranceLine: fragranceLine?.trim() || fallback.fragranceLine,
-    notes: {
-      top: fragranceNotes?.top?.length ? fragranceNotes.top : fallback.notes.top,
-      middle: fragranceNotes?.middle?.length ? fragranceNotes.middle : fallback.notes.middle,
-      base: fragranceNotes?.base?.length ? fragranceNotes.base : fallback.notes.base,
-    },
+    notes: listedNotes({ fragranceNotes }),
     ingredients:
       fragranceIngredients && fragranceIngredients.length > 0
-        ? fragranceIngredients.map((name, i) => ({
+        ? [...new Set(fragranceIngredients.filter(name => typeof name === "string").map(name => name.trim()).filter(Boolean))].map((name, i) => ({
             name: name.trim(),
             accent: accentForIngredient(name, i),
           }))
@@ -149,6 +92,7 @@ function stripHtml(html?: string) {
 export default function PerfumeScrollStory({
   productName,
   modelUrl,
+  fallbackModelUrl,
   brand,
   category,
   descriptionExcerpt,
@@ -172,6 +116,7 @@ export default function PerfumeScrollStory({
     fragranceNotes,
     fragranceIngredients,
   )
+  const hasNotes = Object.values(story.notes).some(notes => notes.length > 0)
   const excerpt =
     stripHtml(descriptionExcerpt).slice(0, 140) || story.fragranceLine
 
@@ -198,7 +143,7 @@ export default function PerfumeScrollStory({
       modelProgress.current = 0
       gsap.set(panels, { opacity: 0, y: 28 })
       gsap.set(panels[0], { opacity: 1, y: 0 })
-      gsap.set([notes, ingredients, particles], { opacity: 0 })
+      gsap.set([...notes, ...ingredients, ...particles], { opacity: 0 })
       gsap.set(cta, { opacity: 0, y: 24 })
       const tl = gsap.timeline({
         defaults: { ease: "power2.inOut" },
@@ -211,13 +156,11 @@ export default function PerfumeScrollStory({
           .to(panels[index + 1], { opacity: 1, y: 0, duration: .5 }, time)
       })
       tl.to(glow, { opacity: .55, scale: 1.05, duration: 8 }, 0)
-        .to(notes, { opacity: 1, stagger: .25, duration: .6 }, 9.7)
-        .to(".ps-model-stage", { y: -28, duration: .6 }, 9.7)
+      if (notes.length) tl.to(notes, { opacity: 1, stagger: .25, duration: .6 }, 9.7).to(notes, { opacity: 0, duration: .5 }, 13.2)
+      if (ingredients.length) tl.to(ingredients, { opacity: 1, stagger: .12, duration: .7 }, 11.6).to(ingredients, { opacity: .15, duration: .8 }, 13.2)
+      tl.to(".ps-model-stage", { y: -28, duration: .6 }, 9.7)
         .to(particles, { opacity: .55, y: -12, stagger: .05, duration: .8 }, 9.8)
-        .to(ingredients, { opacity: 1, stagger: .12, duration: .7 }, 11.6)
-        .to(notes, { opacity: 0, duration: .5 }, 13.2)
         .to(".ps-model-stage", { y: 0, duration: .6 }, 13.2)
-        .to(ingredients, { opacity: .15, duration: .8 }, 13.2)
         .to(cta, { opacity: 1, y: 0, duration: .9 }, 13.8)
       ScrollTrigger.refresh()
     }, root)
@@ -237,7 +180,7 @@ export default function PerfumeScrollStory({
           </div>
           <div className="flex flex-col items-center gap-8">
             <div className="h-[420px] w-full max-w-md">
-              <ProductModelCanvas modelUrl={modelUrl} productName={productName} assembled onError={() => setFailed(true)} />
+              <ProductModelCanvas modelUrl={modelUrl} fallbackModelUrl={fallbackModelUrl} productName={productName} assembled onError={() => setFailed(true)} />
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
               <button
@@ -291,15 +234,15 @@ export default function PerfumeScrollStory({
             <Panel index={4} eyebrow="The Cap" title="The final seal." body="A soft descent — the bottle becomes complete." />
             <Panel index={5} eyebrow="The Signature" title={brand} body={`${productName} — marked with quiet gold.`} />
             <Panel index={6} eyebrow="Light Reveal" title="Seen in true light." body="Glass, liquid, and metal catch a cinematic sweep." />
-            <Panel index={7} eyebrow="Fragrance Notes" title="A journey through the scent." body="Top · Heart · Base — unfolding over time." />
-            <Panel index={8} eyebrow="Ingredients" title="Nature, composed." body="Rare notes arranged with intention." />
+            <Panel index={7} eyebrow={hasNotes ? "Fragrance Notes" : "Your Choice"} title={hasNotes ? "A journey through the scent." : "Choose the details that suit you."} body={hasNotes ? "Top · Heart · Base — unfolding over time." : "Explore the product description, bottle sizes and current availability."} />
+            <Panel index={8} eyebrow={story.ingredients.length ? "Scent Accents" : "Explore the Fragrance"} title="Make it your own." body={story.ingredients.length ? "Explore the scent accents listed for this fragrance." : "Ask BY12 if you need more detail before choosing."} />
             <Panel index={9} eyebrow="Yours to Wear" title={productName} body="The bottle is ready. The story continues on you." />
           </div>
         </div>
 
         {/* Actual GLB geometry; its embedded assembly is scrubbed by the existing story. */}
         <div className="ps-model-stage absolute inset-x-0 top-[24%] bottom-[15%] z-10">
-          <ProductModelCanvas modelUrl={modelUrl} productName={productName} progress={modelProgress} onReady={() => setReady(true)} onError={() => setFailed(true)} />
+          <ProductModelCanvas modelUrl={modelUrl} fallbackModelUrl={fallbackModelUrl} productName={productName} progress={modelProgress} onReady={() => setReady(true)} onError={() => setFailed(true)} />
         </div>
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 h-[320px] w-[240px] -translate-x-1/2 -translate-y-1/2">
           {story.ingredients.map((ingredient, i) => {
@@ -310,27 +253,11 @@ export default function PerfumeScrollStory({
         </div>
 
         {/* Notes stack (section 8) */}
-        <div className="pointer-events-none absolute bottom-12 left-1/2 z-20 w-full max-w-sm -translate-x-1/2 px-4 md:bottom-16">
+        {hasNotes && <div className="pointer-events-none absolute bottom-12 left-1/2 z-20 w-full max-w-sm -translate-x-1/2 px-4 md:bottom-16">
           <div className="space-y-2 text-center">
-            <div className="ps-note-row text-sm text-slate-300">
-              <span className="text-accent font-semibold tracking-wide">Top</span>
-              <span className="mx-2 text-slate-600">·</span>
-              {story.notes.top.join(" · ")}
-            </div>
-            <div className="ps-note-row text-xs text-slate-500">↓</div>
-            <div className="ps-note-row text-sm text-slate-300">
-              <span className="text-accent font-semibold tracking-wide">Heart</span>
-              <span className="mx-2 text-slate-600">·</span>
-              {story.notes.middle.join(" · ")}
-            </div>
-            <div className="ps-note-row text-xs text-slate-500">↓</div>
-            <div className="ps-note-row text-sm text-slate-300">
-              <span className="text-accent font-semibold tracking-wide">Base</span>
-              <span className="mx-2 text-slate-600">·</span>
-              {story.notes.base.join(" · ")}
-            </div>
+            {([{ label: "Top", values: story.notes.top }, { label: "Heart", values: story.notes.middle }, { label: "Base", values: story.notes.base }]).filter(note => note.values.length).map(note => <div key={note.label} className="ps-note-row text-sm text-slate-300"><span className="text-accent font-semibold tracking-wide">{note.label}</span><span className="mx-2 text-slate-600">·</span>{note.values.join(" · ")}</div>)}
           </div>
-        </div>
+        </div>}
 
         {/* Final CTA */}
         <div className="ps-cta pointer-events-auto absolute bottom-10 left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-4 will-change-transform">

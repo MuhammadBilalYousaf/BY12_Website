@@ -1,0 +1,7 @@
+.env*
+.git
+.vscode
+.next
+node_modules
+SEO-verification
+*.tsbuildinfo

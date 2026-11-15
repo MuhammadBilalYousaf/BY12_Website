@@ -5,6 +5,7 @@ import type { AnimationAction, AnimationMixer, Group, Material, Texture, WebGLRe
 
 interface ProductModelCanvasProps {
   modelUrl: string
+  fallbackModelUrl?: string
   productName: string
   progress?: { current: number }
   preview?: boolean
@@ -14,7 +15,7 @@ interface ProductModelCanvasProps {
 }
 
 /** Canvas only: the storefront gets no editor controls, sliders or replacement page UI. */
-export default function ProductModelCanvas({ modelUrl, productName, progress, preview = false, assembled = false, onReady, onError }: ProductModelCanvasProps) {
+export default function ProductModelCanvas({ modelUrl, fallbackModelUrl, productName, progress, preview = false, assembled = false, onReady, onError }: ProductModelCanvasProps) {
   const host = useRef<HTMLDivElement>(null)
   const callbacks = useRef({ onReady, onError })
   callbacks.current = { onReady, onError }
@@ -94,7 +95,10 @@ export default function ProductModelCanvas({ modelUrl, productName, progress, pr
         renderer?.domElement.removeEventListener("webglcontextlost", contextLost)
         renderer?.dispose(); renderer?.forceContextLoss(); renderer?.domElement.remove()
       }
-      const gltf = await loader.loadAsync(modelUrl)
+      const gltf = await loader.loadAsync(modelUrl).catch(error => {
+        if (!fallbackModelUrl || cancelled) throw error
+        return loader.loadAsync(fallbackModelUrl)
+      })
       if (cancelled) { disposeModel(gltf.scene); return }
       model = gltf.scene
       const bounds = new THREE.Box3().setFromObject(model)
@@ -139,7 +143,7 @@ export default function ProductModelCanvas({ modelUrl, productName, progress, pr
       callbacks.current.onError?.()
     })
     return () => { cancelled = true; cleanup?.() }
-  }, [modelUrl, preview, assembled, progress])
+  }, [modelUrl, fallbackModelUrl, preview, assembled, progress])
 
   return <div ref={host} role="img" aria-label={`3D model of ${productName}`} className={`h-full w-full ${preview ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"}`} />
 }

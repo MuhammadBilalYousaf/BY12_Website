@@ -86,7 +86,7 @@ export default function ProductDetailsModal({ product, onClose }: ProductDetails
                         <Star
                           key={i}
                           size={18}
-                          className={i < Math.floor(product.rating) ? "fill-accent text-accent" : "text-border"}
+                          className={i < Math.floor(product.rating || 0) ? "fill-accent text-accent" : "text-border"}
                         />
                       ))}
                     </div>
@@ -103,7 +103,7 @@ export default function ProductDetailsModal({ product, onClose }: ProductDetails
                 <div className="mb-8 pb-8 border-b border-border">
                   <h3 className="text-lg font-semibold text-foreground mb-3">Fragrance Notes</h3>
                   <div className="flex flex-wrap gap-2">
-                    {product.notes.map((note) => (
+                    {[...(product.fragranceNotes?.top || []), ...(product.fragranceNotes?.middle || []), ...(product.fragranceNotes?.base || [])].map((note) => (
                       <span key={note} className="px-4 py-2 bg-muted text-foreground rounded-full text-sm">
                         {note}
                       </span>
@@ -116,7 +116,7 @@ export default function ProductDetailsModal({ product, onClose }: ProductDetails
                   <h3 className="text-lg font-semibold text-foreground mb-3">Size</h3>
                   <div className="flex gap-3">
                     <button className="px-4 py-2 border-2 border-primary text-primary rounded-lg font-semibold">
-                      {product.volume}
+                      {product.size ? `${product.size} ml` : "See product details"}
                     </button>
                   </div>
                 </div>

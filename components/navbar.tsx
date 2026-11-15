@@ -182,7 +182,7 @@ export default function Navbar() {
     if (category === "All") {
       router.push("/shop")
     } else {
-      router.push(`/shop?category=${category}`)
+      router.push(`/shop/${category.toLowerCase()}`)
     }
   }
 

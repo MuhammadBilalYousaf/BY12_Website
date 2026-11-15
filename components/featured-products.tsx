@@ -9,9 +9,9 @@ import { collection, query, where, onSnapshot, limit } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { FadeInSection, FadeInStagger, FadeInItem } from "@/components/animated-section"
 
-export default function FeaturedProducts() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+export default function FeaturedProducts({ initialProducts = [] }: { initialProducts?: Product[] }) {
+  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // Query for featured products from Firebase (simplified - no orderBy)

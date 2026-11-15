@@ -15,5 +15,7 @@ export function isProductModelUrl(value: string) {
 export function resolveProductModel(product: ModelProduct, selectedSize?: number) {
   const url = typeof product.modelUrl === "string" ? product.modelUrl.trim() : ""
   if (!isProductModelUrl(url) || (product.modelSize && selectedSize && product.modelSize !== selectedSize)) return null
-  return { url, size: product.modelSize }
+  const fallbackUrl = product.id === "coffeeno_impression_of_khamrah_qahwa" && selectedSize === 50 && url.startsWith("https://files.catbox.moe/")
+    ? "/models/coffeeno-50ml.glb" : undefined
+  return { url, size: product.modelSize, fallbackUrl }
 }

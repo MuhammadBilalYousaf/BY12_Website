@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
                     <tr>
                       <td style="background-color: #f9fafb; padding: 20px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
                         <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                          View all messages in <a href="https://bilalyousaf12.store/admin/messages" style="color: #d4af37;">Admin Portal</a>
+                          View all messages in <a href="https://www.bilalyousaf12.store/admin/messages" style="color: #d4af37;">Admin Portal</a>
                         </p>
                       </td>
                     </tr>
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
                         <table cellpadding="0" cellspacing="0" style="margin: 25px 0;">
                           <tr>
                             <td style="background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); border-radius: 12px; padding: 15px 30px;">
-                              <a href="https://bilalyousaf12.store/shop" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 16px;">Browse Collection</a>
+                              <a href="https://www.bilalyousaf12.store/shop" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 16px;">Browse Collection</a>
                             </td>
                           </tr>
                         </table>

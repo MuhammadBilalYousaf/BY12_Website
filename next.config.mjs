@@ -1,13 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -31,11 +24,16 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
-    domains: ['res.cloudinary.com', 'images.unsplash.com', 'plus.unsplash.com', 'media.istockphoto.com'],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+  redirects: async () => [{
+    source: '/:path*',
+    has: [{ type: 'host', value: 'bilalyousaf12.store' }],
+    destination: 'https://www.bilalyousaf12.store/:path*',
+    permanent: true,
+  }],
   headers: async () => {
     return [
       {

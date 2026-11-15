@@ -1,4 +1,5 @@
-import { db } from "@/lib/firebase"
+import { db, auth } from "@/lib/firebase"
+import { createTrackingAccessGuard } from "@/lib/tracking-access"
 import {
   collection,
   addDoc,
@@ -13,6 +14,18 @@ import {
 import { CustomerInteraction } from "@/lib/types"
 
 const GUEST_ID_KEY = "guest_session_id"
+const interactionAccess = createTrackingAccessGuard()
+const trackingIdentity = () => auth.currentUser?.uid || "guest"
+
+function handleInteractionError(error: unknown, message: string, identity: string) {
+  const firstFailure = interactionAccess.canAttempt(identity)
+  if (interactionAccess.recordFailure(identity, error)) {
+    if (firstFailure) console.warn("Custom interaction tracking is unavailable for this session: Firebase denied access. Shopping can continue; analytics collection is not verified.")
+    return true
+  }
+  console.error(message, error)
+  return false
+}
 
 export type TrackableFormType =
   | "contact_form"
@@ -81,6 +94,8 @@ async function findOpenInteraction(
   email?: string,
   guestSessionId?: string
 ): Promise<{ id: string; data: CustomerInteraction } | null> {
+  const requestIdentity = trackingIdentity()
+  if (!interactionAccess.canAttempt(requestIdentity)) return null
   const interactionsRef = collection(db, "customerInteractions")
   const normalized = normalizeEmail(email)
 
@@ -111,7 +126,7 @@ async function findOpenInteraction(
       }
     }
   } catch (error) {
-    console.error("Error finding open interaction:", error)
+    handleInteractionError(error, "Error finding open interaction:", requestIdentity)
   }
 
   return null
@@ -121,6 +136,8 @@ async function findOpenInteraction(
  * Link all guest interactions to a customer email
  */
 export async function linkGuestInteractionsToEmail(email: string, guestId?: string): Promise<void> {
+  const requestIdentity = trackingIdentity()
+  if (!interactionAccess.canAttempt(requestIdentity)) return
   try {
     const targetGuestId =
       guestId || (typeof window !== "undefined" ? localStorage.getItem(GUEST_ID_KEY) : null)
@@ -143,16 +160,18 @@ export async function linkGuestInteractionsToEmail(email: string, guestId?: stri
 
     console.log(`Linked ${snapshot.docs.length} guest interactions to email: ${normalized}`)
   } catch (error) {
-    console.error("Error linking guest interactions:", error)
+    handleInteractionError(error, "Error linking guest interactions:", requestIdentity)
   }
 }
 
 /**
- * Log a customer interaction to Firestore
+ * Log a customer interaction to Firestore. Returns an empty ID when access is denied.
  */
 export async function logCustomerInteraction(
   interaction: Omit<CustomerInteraction, "id" | "createdAt" | "updatedAt">
 ): Promise<string> {
+  const requestIdentity = trackingIdentity()
+  if (!interactionAccess.canAttempt(requestIdentity)) return ""
   try {
     const interactionsRef = collection(db, "customerInteractions")
     const meta = getClientMeta()
@@ -168,7 +187,7 @@ export async function logCustomerInteraction(
     console.log("Customer interaction logged:", docRef.id)
     return docRef.id
   } catch (error) {
-    console.error("Error logging customer interaction:", error)
+    if (handleInteractionError(error, "Error logging customer interaction:", requestIdentity)) return ""
     throw error
   }
 }
@@ -180,6 +199,8 @@ export async function updateCustomerInteraction(
   interactionId: string,
   updates: Partial<CustomerInteraction>
 ): Promise<void> {
+  const requestIdentity = trackingIdentity()
+  if (!interactionAccess.canAttempt(requestIdentity)) return
   try {
     const interactionRef = doc(db, "customerInteractions", interactionId)
     const cleanedData = cleanUndefinedValues({
@@ -189,7 +210,7 @@ export async function updateCustomerInteraction(
     })
     await updateDoc(interactionRef, cleanedData)
   } catch (error) {
-    console.error("Error updating customer interaction:", error)
+    if (handleInteractionError(error, "Error updating customer interaction:", requestIdentity)) return
     throw error
   }
 }

@@ -54,14 +54,14 @@ export default function NotFound() {
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link 
-              href="/shop?category=men" 
+              href="/shop/men"
               className="text-sm text-primary hover:underline"
             >
               Men's Perfumes
             </Link>
             <span className="text-muted-foreground">•</span>
             <Link 
-              href="/shop?category=women" 
+              href="/shop/women"
               className="text-sm text-primary hover:underline"
             >
               Women's Perfumes

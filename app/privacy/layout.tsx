@@ -5,13 +5,13 @@ export const metadata: Metadata = {
   description: "Read our privacy policy to understand how BY12 Perfumes collects, uses, and protects your personal information.",
   keywords: "privacy policy, data protection, BY12 privacy, personal information",
   alternates: {
-    canonical: "https://bilalyousaf12.store/privacy",
+    canonical: "https://www.bilalyousaf12.store/privacy",
   },
   openGraph: {
     title: "Privacy Policy | BY12 Perfumes",
     description: "How BY12 Perfumes protects your privacy and personal data.",
     type: "website",
-    url: "https://bilalyousaf12.store/privacy",
+    url: "https://www.bilalyousaf12.store/privacy",
   },
 }
 

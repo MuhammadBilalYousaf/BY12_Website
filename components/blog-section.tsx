@@ -12,13 +12,13 @@ interface BlogPost {
   title: string
   excerpt: string
   imageUrl: string
-  createdAt: any
+  createdAt?: any
   category?: string
   author?: string
 }
 
-export default function BlogSection() {
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+export default function BlogSection({ initialPosts = [] }: { initialPosts?: BlogPost[] }) {
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(initialPosts)
   const [activeIndex, setActiveIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [direction, setDirection] = useState<'left' | 'right' | null>(null)
@@ -103,7 +103,7 @@ export default function BlogSection() {
   const formatDate = (timestamp: any) => {
     if (!timestamp) return ""
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    return date.toLocaleDateString("en-US", { timeZone: "Asia/Karachi", month: "short", day: "numeric", year: "numeric" })
   }
 
   if (blogPosts.length === 0) {

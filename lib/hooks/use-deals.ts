@@ -3,9 +3,9 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverT
 import { db } from "@/lib/firebase"
 import type { Deal } from "@/lib/types"
 
-export function useDeals() {
-  const [deals, setDeals] = useState<Deal[]>([])
-  const [loading, setLoading] = useState(true)
+export function useDeals(initialDeals?: Deal[]) {
+  const [deals, setDeals] = useState<Deal[]>(initialDeals || [])
+  const [loading, setLoading] = useState(!initialDeals)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {

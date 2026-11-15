@@ -85,10 +85,9 @@ export default function Footer() {
                 loading="lazy"
                 className="rounded-xl w-auto h-auto"
               />
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent"></h3>
             </div>
             <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-              Experience the essence of luxury with our handpicked collection of premium fragrances from around the world.
+              Explore BY12 inspired perfumes, made for everyday confidence and available for delivery across Pakistan.
             </p>
             <div className="flex gap-3">
               <a href="https://web.facebook.com/profile.php?id=61586869565572" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook" className="w-10 h-10 rounded-xl bg-slate-800/50 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-accent hover:border-accent/50 hover:bg-accent/10 transition-all duration-300">
@@ -138,6 +137,12 @@ export default function Footer() {
                 <Link href="/blog" className="text-slate-400 hover:text-accent transition-colors duration-300 flex items-center gap-2 group">
                   <span className="w-0 h-px bg-accent group-hover:w-4 transition-all duration-300" />
                   Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="/guides" className="text-slate-400 hover:text-accent transition-colors duration-300 flex items-center gap-2 group">
+                  <span className="w-0 h-px bg-accent group-hover:w-4 transition-all duration-300" />
+                  Buying Guides
                 </Link>
               </li>
             </ul>

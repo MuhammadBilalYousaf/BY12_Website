@@ -108,7 +108,7 @@ export function useProducts() {
     return newId
   }
 
-  const addProduct = async (productData: Omit<Product, "id" | "createdAt" | "updatedAt">) => {
+  const addProduct = async (productData: Omit<import("@/lib/types").Product, "id" | "createdAt" | "updatedAt">) => {
     try {
       // Generate ID from product name
       const productId = await generateProductId(productData.name)
@@ -140,28 +140,7 @@ export function useProducts() {
       
       const currentProduct = { id: productSnap.id, ...productSnap.data() } as Product
       
-      // If name is being updated and it's different from current name
-      if (productData.name && productData.name !== currentProduct.name) {
-        // Generate new ID, excluding current product ID
-        const newProductId = await generateProductId(productData.name, productId)
-        
-        // If the new ID is different from the current ID
-        if (newProductId !== productId) {
-          // Create new document with new ID
-          await setDoc(doc(db, "products", newProductId), {
-            ...currentProduct,
-            ...productData,
-            updatedAt: serverTimestamp(),
-          })
-          
-          // Delete old document
-          await deleteDoc(doc(db, "products", productId))
-          
-          return { success: true, id: newProductId, renamed: true }
-        }
-      }
-      
-      // Normal update if name didn't change or new ID is same as old ID
+      // Preserve the document ID, URL and review references when a name changes.
       await updateDoc(doc(db, "products", productId), {
         ...productData,
         updatedAt: serverTimestamp(),

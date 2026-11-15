@@ -9,9 +9,9 @@ import ProductCard from "./product-card"
 import { FadeInSection, FadeInStagger, FadeInItem } from "./animated-section"
 import { Sparkles, ArrowRight } from "lucide-react"
 
-export default function FeaturedTesters() {
-  const [testers, setTesters] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+export default function FeaturedTesters({ initialTesters = [] }: { initialTesters?: Product[] }) {
+  const [testers, setTesters] = useState<Product[]>(initialTesters)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const q = query(
@@ -29,8 +29,8 @@ export default function FeaturedTesters() {
         
         // Sort by newest first, then limit to 4
         const sorted = testersData.sort((a, b) => {
-          const timeA = a.createdAt?.toDate?.() || new Date(0)
-          const timeB = b.createdAt?.toDate?.() || new Date(0)
+          const timeA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0)
+          const timeB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0)
           return timeB.getTime() - timeA.getTime()
         })
         
@@ -63,7 +63,7 @@ export default function FeaturedTesters() {
               <Sparkles className="w-6 h-6 text-[#d4af37]" />
             </div>
             <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-              Discover our exclusive fragrance testers. Request your free 5ml samples and experience our premium scents risk-free. Only pay for delivery!
+              Explore BY12 fragrance samples before choosing a full bottle. Check each tester for its sample size and availability. Delivery charges apply.
             </p>
           </div>
 

@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ChevronRight, Clock3, Flame } from "lucide-react"
 import { useDeals } from "@/lib/hooks/use-deals"
 import { FadeInItem, FadeInSection, FadeInStagger } from "@/components/animated-section"
+import type { Deal } from "@/lib/types"
 import { toSlug } from "@/lib/utils"
 
 function isDealActive(endDate: any) {
@@ -14,8 +15,8 @@ function isDealActive(endDate: any) {
   return parsedEndDate >= new Date()
 }
 
-export default function FeaturedDeals() {
-  const { deals, loading } = useDeals()
+export default function FeaturedDeals({ initialDeals }: { initialDeals?: Deal[] }) {
+  const { deals, loading } = useDeals(initialDeals)
 
   const featuredDeals = deals
     .filter((deal) => deal.featured && deal.isActive && isDealActive(deal.endDate))
@@ -74,7 +75,7 @@ export default function FeaturedDeals() {
                 const href = `/deals/${toSlug(deal.title) || deal.id}`
                 const image = deal.images?.[0] || deal.imageUrl || "/placeholder.jpg"
                 const endDateText = deal.endDate
-                  ? (deal.endDate?.toDate ? deal.endDate.toDate() : new Date(deal.endDate)).toLocaleDateString()
+                  ? (deal.endDate?.toDate ? deal.endDate.toDate() : new Date(deal.endDate)).toLocaleDateString("en-US", { timeZone: "Asia/Karachi" })
                   : null
 
                 return (

@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
                       <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                         <tr>
                           <td style="background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); border-radius: 12px; padding: 15px 30px;">
-                            <a href="https://bilalyousaf12.store/shop" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 16px;">Explore Our Shop</a>
+                            <a href="https://www.bilalyousaf12.store/shop" style="color: #0f172a; text-decoration: none; font-weight: bold; font-size: 16px;">Explore Our Shop</a>
                           </td>
                         </tr>
                       </table>
@@ -117,9 +117,9 @@ export async function POST(request: NextRequest) {
                         DHA Phase 8, Eden City, Pakistan
                       </p>
                       <p style="color: #64748b; font-size: 11px; margin: 0;">
-                        <a href="https://bilalyousaf12.store/privacy" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a>
+                        <a href="https://www.bilalyousaf12.store/privacy" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a>
                         <span style="margin: 0 8px;">|</span>
-                        <a href="https://bilalyousaf12.store/terms" style="color: #94a3b8; text-decoration: underline;">Terms of Service</a>
+                        <a href="https://www.bilalyousaf12.store/terms" style="color: #94a3b8; text-decoration: underline;">Terms of Service</a>
                       </p>
                     </td>
                   </tr>

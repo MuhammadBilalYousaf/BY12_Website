@@ -9,15 +9,15 @@ import { PageTransition } from "@/components/page-transition"
 import VisitorTracker from "@/components/visitor-tracker"
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bilalyousaf12.store"),
+  metadataBase: new URL("https://www.bilalyousaf12.store"),
   title: {
-    default: "BY12 Perfumes | Luxury Fragrances in Pakistan",
-    template: "%s | BY12 Perfumes"
+    default: "BY12 Perfumes | Inspired Fragrances in Pakistan",
+    template: "%s"
   },
-  description: "Discover BY12's exclusive collection of luxury perfumes for men and women. Authentic fragrances, premium quality, and fast delivery across Pakistan.",
+  description: "Explore BY12 inspired perfumes for men and women in Pakistan. Compare scent profiles, sizes and prices, with Cash on Delivery across Pakistan.",
   icons: {
     icon: "/tab_icon.png",
-    apple: "/apple-touch-icon.png",
+
   },
   keywords: ["perfumes", "luxury perfumes", "fragrances", "bilalyousaf12", "BY12", "perfume Pakistan", "men perfumes", "women perfumes", "unisex perfumes", "buy perfumes online"],
   authors: [{ name: "BY12 Perfumes" }],
@@ -31,24 +31,22 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://bilalyousaf12.store",
+    url: "https://www.bilalyousaf12.store",
     siteName: "BY12 Perfumes",
-    title: "BY12 Perfumes | Luxury Fragrances in Pakistan",
+    title: "BY12 Perfumes | Inspired Fragrances in Pakistan",
     description: "Discover BY12's exclusive collection of luxury perfumes for men and women.",
     images: [
       {
-        url: "/logo.png",
-        width: 1200,
-        height: 630,
+        url: "/opengraph-image",
         alt: "BY12 Perfumes Collection",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BY12 Perfumes | Luxury Fragrances in Pakistan",
+    title: "BY12 Perfumes | Inspired Fragrances in Pakistan",
     description: "Discover BY12's exclusive collection of luxury perfumes.",
-    images: ["/logo.png"],
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
@@ -76,10 +74,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="description" content="Discover BY12's exclusive collection of luxury perfumes for men and women. Authentic fragrances, premium quality, and fast delivery across Pakistan." />
         <OrganizationSchema />
         <WebsiteSchema />
-        <LocalBusinessSchema />
       </head>
       <body className="font-sans">
         <a href="#main-content" className="skip-link">Skip to main content</a>
