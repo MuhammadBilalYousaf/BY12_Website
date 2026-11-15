@@ -9,6 +9,8 @@ type AnalyticsWindow = Window & { dataLayer?: unknown[]; gtag?: (...args: unknow
 type EcommerceEvent = "view_item" | "add_to_cart" | "remove_from_cart" | "view_cart" | "begin_checkout"
 export type AnalyticsItem = { item_id: string; item_name: string; item_brand: string; item_category: string; item_variant?: string; price: number; quantity: number; discount?: number }
 let configured = false
+let navigationPath = ""
+const viewedEvents = new Set<string>()
 const sentOrders = new Set<string>()
 
 // Never measure account/admin/order-lookup URLs or include query strings/fragments.
@@ -20,6 +22,10 @@ export function analyticsPath(input: string): string | null {
 function analytics() {
   if (typeof window === "undefined") return null
   const target = window as AnalyticsWindow
+  if (navigationPath !== window.location.pathname) {
+    navigationPath = window.location.pathname
+    viewedEvents.clear()
+  }
   const path = analyticsPath(window.location.pathname)
   const enabled = window.location.hostname === GA_HOST && !!path
   target[DISABLE_KEY] = !enabled
@@ -49,7 +55,9 @@ export function syncAnalyticsPage() {
   try {
     const gtag = analytics()
     if (!gtag) return false
+    if (viewedEvents.has("page_view")) return true
     gtag("event", "page_view", { send_to: GA_MEASUREMENT_ID, page_location: `https://${GA_HOST}${analyticsPath(window.location.pathname)}`, page_title: document.title })
+    viewedEvents.add("page_view")
     return true
   } catch { return false }
 }
@@ -87,7 +95,16 @@ export function recordEcommerce(event: EcommerceEvent, cart: Parameters<typeof e
     if (!payload.items.length) return false
     const gtag = analytics()
     if (!gtag) return false
+    const path = window.location.pathname
+    // The animated page wrapper can briefly remount the previous page's children.
+    if (event === "view_cart" && path !== "/cart") return false
+    if (event === "begin_checkout" && path !== "/checkout") return false
+    if (event === "view_item" && payload.items.some(item => path !== `/product/${item.item_id}`)) return false
+    const isView = event === "view_item" || event === "view_cart" || event === "begin_checkout"
+    const key = event === "view_item" ? `${event}:${JSON.stringify(payload.items)}` : event
+    if (isView && viewedEvents.has(key)) return true
     gtag("event", event, { send_to: GA_MEASUREMENT_ID, ...payload })
+    if (isView) viewedEvents.add(key)
     return true
   } catch { return false }
 }

@@ -112,3 +112,34 @@ test('blocked browser storage does not throw into checkout and still deduplicate
   assert.equal(value.api.recordOrderResult(result, cart, totals), false)
   assert.equal(value.events().length, 1)
 })
+
+test('animated remounts cannot duplicate views or attribute stale page children to another route', () => {
+  const value = fixture({ pathname: '/product/coffeeno' })
+  value.api.syncAnalyticsPage()
+  value.api.syncAnalyticsPage()
+  value.api.recordEcommerce('view_item', cart)
+  value.api.recordEcommerce('view_item', cart)
+  value.window.location.pathname = '/cart'
+  assert.equal(value.api.recordEcommerce('view_item', cart), false)
+  value.api.recordEcommerce('view_cart', cart)
+  value.api.recordEcommerce('view_cart', cart)
+  value.window.location.pathname = '/checkout'
+  assert.equal(value.api.recordEcommerce('view_cart', cart), false)
+  value.api.recordEcommerce('begin_checkout', cart)
+  value.api.recordEcommerce('begin_checkout', cart)
+  const names = value.events().map(event => event[1])
+  assert.deepEqual(normalize(names), ['page_view', 'view_item', 'view_cart', 'begin_checkout'])
+})
+test('real return visits and repeat cart actions still count after view deduplication', () => {
+  const value = fixture({ pathname: '/cart' })
+  value.api.recordEcommerce('view_cart', cart)
+  value.api.recordEcommerce('add_to_cart', cart)
+  value.api.recordEcommerce('add_to_cart', cart)
+  value.window.location.pathname = '/checkout'
+  value.api.recordEcommerce('begin_checkout', cart)
+  value.window.location.pathname = '/cart'
+  value.api.recordEcommerce('view_cart', cart)
+  const names = value.events().map(event => event[1])
+  assert.equal(names.filter(name => name === 'view_cart').length, 2)
+  assert.equal(names.filter(name => name === 'add_to_cart').length, 2)
+})

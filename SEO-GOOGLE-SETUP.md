@@ -11,6 +11,7 @@ Account access was verified in the authenticated in-app browser on 15 November 2
 - GA4 account `306668739`, property `512618134` (`by12-b3606`), web stream `12972361201` (`BY12`), measurement ID `G-VQXGFCDSEL` were verified in the UI.
 - The web stream's previously blank website URL was updated to `https://www.bilalyousaf12.store`.
 - Enhanced measurement was already off. It remains off, allowing the app to own manual pageviews without duplicate history-based pageviews. No automatic form-field collection was enabled.
+- Reporting settings were saved successfully: Pakistan / Pakistan Time (GMT+05:00), Pakistani Rupee (Rs), Beauty & Fitness, Small (1–10 employees, confirmed by the owner), and the Drive sales / Understand web and/or app traffic objectives.
 
 ## Website integration
 
@@ -30,9 +31,11 @@ Only public product IDs, names, brands, categories, selected sizes, quantities a
 
 Analytics errors and blocked browser storage are contained so shopping does not depend on tracking. Ad blockers and network failures can still prevent delivery; a queued event alone is not proof that a report received it.
 
+Live verification exposed duplicate screen-view events caused by the existing animated page wrapper briefly remounting previous route children. The helper now validates the expected route for item/cart/checkout views and deduplicates screen-view events for the current visit across component remounts. A real return visit and repeated cart add/remove actions still count. The page-transition animation itself was not changed.
+
 ## Validation record
 
-The combined suite passed 38 tests, including nine Analytics tests for route exclusions, actual variant/sale prices, discount rounding/free samples, invalid inputs, production-only collection, private-route disabling, payload field limits, failed-order handling and purchase deduplication. Standalone TypeScript validation passed.
+The suite covers 40 tests, including eleven Analytics tests for route exclusions, actual variant/sale prices, discount rounding/free samples, invalid inputs, production-only collection, private-route disabling, payload field limits, failed-order handling, purchase deduplication and animated-route remounts. Standalone TypeScript validation passed on the initial integration; the final Vercel production build also runs TypeScript validation.
 
 Production deployment, live event delivery, final reporting settings and additional URL-request results are recorded after verification. A real order will not be submitted just to generate a purchase event.
 
