@@ -5,13 +5,19 @@ const fs = require('node:fs')
 const path = require('node:path')
 const source = fs.readFileSync(path.join(__dirname, 'seo-catalog-patch.cjs'), 'utf8')
 
-async function run({ mode, data = {}, before, fields = { metaTitle: 'Coffeeno Perfume | BY12' }, collection = 'products', savedFields = fields }) {
+async function run({ mode, data = {}, before, fields = { metaTitle: 'Coffeeno Perfume | BY12' }, collection = 'products', savedFields = fields, planKey = 'keyword', published = false }) {
   const writes = [], files = new Map()
   let commits = 0
   const plan = { version: 1, patches: [{ collection, id: 'coffeeno', fields }] }
   const saved = { changes: [{ collection, id: 'coffeeno', before: before || {}, after: savedFields }] }
   const mockFs = {
-    readFile: async filename => JSON.stringify(filename.endsWith('keyword-catalog.json') ? plan : saved),
+    readFile: async filename => {
+      if (filename.endsWith('content-release.json')) {
+        if (published) return JSON.stringify({ mode: 'apply' })
+        throw Object.assign(new Error('Not found'), { code: 'ENOENT' })
+      }
+      return JSON.stringify(filename.endsWith('-catalog.json') ? plan : saved)
+    },
     mkdir: async () => {},
     writeFile: async (filename, text) => files.set(path.basename(filename), JSON.parse(text)),
   }
@@ -22,7 +28,7 @@ async function run({ mode, data = {}, before, fields = { metaTitle: 'Coffeeno Pe
   }
   const module = { exports: {} }
   const mockRequire = spec => spec === 'node:fs/promises' ? mockFs : spec === 'firebase-admin/app' ? { initializeApp() {}, cert: input => input } : spec === 'firebase-admin/firestore' ? { getFirestore: () => db, FieldValue: { serverTimestamp: () => 'server-time', delete: () => 'delete-field' } } : require(spec)
-  const context = { module, exports: module.exports, require: mockRequire, __dirname, console: { log() {}, error() {} }, process: { argv: ['node', 'script', ...(mode ? [mode] : [])], loadEnvFile() {}, env: { FIREBASE_CLIENT_EMAIL: 'existing-service@example.test', FIREBASE_PRIVATE_KEY: 'mock-key' } } }
+  const context = { module, exports: module.exports, require: mockRequire, __dirname, console: { log() {}, error() {} }, process: { argv: ['node', 'script', ...(mode ? [mode] : []), ...(planKey === 'editorial' ? ['--plan=editorial'] : [])], loadEnvFile() {}, env: { FIREBASE_CLIENT_EMAIL: 'existing-service@example.test', FIREBASE_PRIVATE_KEY: 'mock-key' } } }
   vm.runInNewContext(source, context, { filename: 'seo-catalog-patch.cjs' })
   try { await module.exports.main(); return { writes, commits, files } }
   catch (error) { return { writes, commits, files, error } }
@@ -70,5 +76,17 @@ test('catalog rollback restores absent fields without replacing the document', a
 test('catalog rollback refuses to overwrite later owner edits', async () => {
   const result = await run({ mode: '--rollback', data: { metaTitle: 'A later title' }, before: { metaTitle: { present: false } } })
   assert.match(result.error.message, /refusing to overwrite concurrent edits/)
+  assert.equal(result.commits, 0)
+})
+test('a new editorial plan uses a separate backup from the published keyword plan', async () => {
+  const result = await run({ planKey: 'editorial' })
+  assert.equal(result.error, undefined)
+  assert.ok(result.files.has('editorial-content-preview.json'))
+  assert.ok(!result.files.has('keyword-content-preview.json'))
+})
+test('preview cannot overwrite the original rollback backup after publication', async () => {
+  const result = await run({ published: true })
+  assert.match(result.error.message, /preserve its preview for rollback/)
+  assert.equal(result.files.size, 0)
   assert.equal(result.commits, 0)
 })

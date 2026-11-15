@@ -11,6 +11,7 @@ const reportName = process.argv.find(value => value.startsWith('--report='))?.sl
 assert.match(reportName, /^[a-zA-Z0-9-]+\.json$/)
 const results = []
 const keywordPlan = JSON.parse(await fs.readFile(new URL('../seo-content/keyword-catalog.json', import.meta.url), 'utf8'))
+const editorialPlan = JSON.parse(await fs.readFile(new URL('../seo-content/editorial-catalog.json', import.meta.url), 'utf8'))
 async function get(path, options = {}) {
   const response = await fetch(base + path, { headers: stagingHeaders, redirect: 'manual', signal: AbortSignal.timeout(45000), ...options })
   const html = await response.text()
@@ -23,7 +24,7 @@ async function check(name, action) {
 const count = (html, expression) => [...html.matchAll(expression)].length
 const h1 = html => /<h1\b/.test(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''))
 
-for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeeno_impression_of_khamrah_qahwa', '/product/ravla_inspired_by_gucci_flora', '/product/coffeeno---3ml-tester', '/product/ravla---3ml-tester', '/testers', '/blog/ke8yY9PLMbeXhUbEli7Z', '/deals/coffeeno-double-dose-50ml-30ml-oud-coffee-duo-by-by12', '/guides', '/guides/30ml-vs-50ml-perfume', '/guides/inspired-perfumes-pakistan', '/guides/coffeeno-vs-ravla', '/refund']) {
+for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeeno_impression_of_khamrah_qahwa', '/product/ravla_inspired_by_gucci_flora', '/product/coffeeno---3ml-tester', '/product/ravla---3ml-tester', '/testers', '/blog/ke8yY9PLMbeXhUbEli7Z', ...editorialPlan.patches.map(patch => `/blog/${patch.id}`), '/deals/coffeeno-double-dose-50ml-30ml-oud-coffee-duo-by-by12', '/guides', '/guides/30ml-vs-50ml-perfume', '/guides/inspired-perfumes-pakistan', '/guides/coffeeno-vs-ravla', '/refund']) {
   await check('HTML SEO ' + route, async () => {
     const { response, html } = await get(route)
     assert.equal(response.status, 200)
@@ -38,8 +39,18 @@ for (const route of ['/', '/shop', '/shop/men', '/shop/women', '/product/coffeen
       assert.ok(html.includes(`<title>${patch.fields.metaTitle}</title>`), 'keyword-informed CMS title missing')
       assert.ok(html.includes(patch.fields.description.split('.')[0]), 'updated product introduction missing from server HTML')
     }
+    const article = editorialPlan.patches.find(patch => route === `/blog/${patch.id}`)
+    if (article) assert.ok(html.includes(`<title>${article.fields.title} | BY12 Perfumes</title>`), 'reviewed article metadata missing')
   })
 }
+await check('Homepage preloads desktop artwork only for desktop and defers blog artwork', async () => {
+  const { html } = await get('/')
+  const tags = [...html.matchAll(/<link\b[^>]*>/g)].map(match => match[0]).filter(tag => tag.includes('rel="preload"') && tag.includes('as="image"'))
+  const hero = tags.find(tag => tag.includes('all_png.png'))
+  assert.ok(hero?.includes('media="(min-width: 1024px)"'), 'desktop-only preload media missing')
+  assert.ok(tags.every(tag => tag.includes('all_png.png') || tag.includes('logo.png')), 'below-fold image is competing for preload priority')
+  assert.ok(/<source\b[^>]*media="\(min-width: 1024px\)"/.test(html))
+})
 await check('Organization references the published return policy without inventing terms', async () => {
   const { response, html } = await get('/')
   assert.equal(response.status, 200)

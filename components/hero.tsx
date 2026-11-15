@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import { getImageProps } from "next/image"
 import Link from "next/link"
 import { motion, useReducedMotion } from "framer-motion"
 import { ChevronRight, Sparkles } from "lucide-react"
@@ -10,6 +10,17 @@ import { HeroReveal } from "@/components/animated-section"
 export default function Hero() {
   const { stats, loading } = useSiteStats()
   const reduceMotion = useReducedMotion()
+  const { props: heroImage } = getImageProps({
+    src: "/all_png.png",
+    alt: "BY12 perfume collection",
+    fill: true,
+    quality: 75,
+    sizes: "50vw",
+    loading: "eager",
+    fetchPriority: "high",
+    className: "object-contain object-right drop-shadow-2xl",
+    style: { filter: "drop-shadow(0 0 40px rgba(139, 92, 246, 0.3))" },
+  })
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
@@ -113,16 +124,13 @@ export default function Hero() {
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-l from-transparent via-accent/5 to-transparent" />
-          <Image
-            src="/all_png.png"
-            alt="BY12 Premium Gold Perfume Bottle"
-            fill
-            priority
-            quality={90}
-            className="object-contain object-right drop-shadow-2xl"
-            sizes="50vw"
-            style={{ filter: "drop-shadow(0 0 40px rgba(139, 92, 246, 0.3))" }}
-          />
+          {/* The desktop artwork is hidden below lg; do not preload/download it
+              on mobile. Desktop keeps an eager, high-priority responsive image. */}
+          <link rel="preload" as="image" media="(min-width: 1024px)" imageSrcSet={heroImage.srcSet} imageSizes={heroImage.sizes} fetchPriority="high" />
+          <picture>
+            <source media="(min-width: 1024px)" srcSet={heroImage.srcSet} sizes={heroImage.sizes} />
+            <img {...heroImage} srcSet={undefined} sizes={undefined} src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" />
+          </picture>
         </motion.div>
       </div>
 

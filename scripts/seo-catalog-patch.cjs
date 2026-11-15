@@ -6,9 +6,10 @@ const path = require('node:path')
 const assert = require('node:assert/strict')
 const { isDeepStrictEqual } = require('node:util')
 const root = path.resolve(__dirname, '..')
-const planPath = path.join(root, 'seo-content/keyword-catalog.json')
-const recordPath = path.join(root, 'SEO-verification/keyword-content-preview.json')
-const resultPath = path.join(root, 'SEO-verification/keyword-content-release.json')
+const planKey = process.argv.includes('--plan=editorial') ? 'editorial' : 'keyword'
+const planPath = path.join(root, `seo-content/${planKey}-catalog.json`)
+const recordPath = path.join(root, `SEO-verification/${planKey}-content-preview.json`)
+const resultPath = path.join(root, `SEO-verification/${planKey}-content-release.json`)
 const allowed = {
   products: new Set(['metaTitle', 'metaDescription', 'description', 'altText']),
   blogs: new Set(['title', 'excerpt', 'content', 'tags', 'readTime']),
@@ -19,8 +20,8 @@ function selectedFields(data, fields) {
 }
 
 async function main() {
-  const args = process.argv.slice(2)
-  assert.ok(args.length <= 1 && args.every(arg => ['--apply', '--rollback'].includes(arg)), 'Use no argument for preview, --apply, or --rollback')
+  const args = process.argv.slice(2).filter(arg => arg !== '--plan=editorial')
+  assert.ok(args.length <= 1 && args.every(arg => ['--apply', '--rollback'].includes(arg)), 'Use no argument for preview, --apply, or --rollback; optionally --plan=editorial')
   const plan = JSON.parse(await fs.readFile(planPath, 'utf8'))
   assert.equal(plan.version, 1)
   assert.ok(plan.patches.length > 0)
@@ -46,6 +47,10 @@ async function main() {
   assert.ok(snapshots.every(snapshot => snapshot.exists), 'An expected catalog document is missing')
   const changes = plan.patches.map((patch, index) => ({ collection: patch.collection, id: patch.id, before: selectedFields(snapshots[index].data(), patch.fields), after: patch.fields }))
   if (!args.length) {
+    let release
+    try { release = JSON.parse(await fs.readFile(resultPath, 'utf8')) }
+    catch (error) { if (error.code !== 'ENOENT') throw error }
+    assert.ok(release?.mode !== 'apply', 'This plan is already published; preserve its preview for rollback and use a separate plan for new edits')
     await fs.mkdir(path.dirname(recordPath), { recursive: true })
     await fs.writeFile(recordPath, JSON.stringify({ previewedAt: new Date().toISOString(), changes }, null, 2))
     console.log(JSON.stringify({ mode: 'preview', writes: 0, record: path.relative(root, recordPath), documents: changes.map(({ collection, id, after }) => ({ collection, id, fields: Object.keys(after), title: after.metaTitle || after.title })) }, null, 2))

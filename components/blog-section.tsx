@@ -211,7 +211,7 @@ export default function BlogSection({ initialPosts = [] }: { initialPosts?: Blog
                         alt={blogPosts[center]?.title || "Featured blog post"}
                         fill
                         sizes="(max-width: 640px) 100vw, 50vw"
-                        priority
+                        loading="lazy"
                         className="object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>

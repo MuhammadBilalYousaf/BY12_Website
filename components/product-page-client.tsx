@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { useCart, useWishlist, useAuth } from "@/lib/contexts"
 import type { Product } from "@/lib/types"
@@ -14,7 +15,7 @@ import PageBreadcrumb from "@/components/page-breadcrumb"
 import { CatalogProductSchema, BreadcrumbSchema } from "@/components/seo-schemas"
 import Toast from "@/components/toast"
 import { FadeInSection, FadeInStagger, FadeInItem } from "@/components/animated-section"
-import PerfumeScrollStory from "@/components/perfume-scroll-story"
+import type { PerfumeScrollStoryProps } from "@/components/perfume-scroll-story"
 import { resolveProductModel } from "@/lib/product-model"
 import { Star, ShoppingCart, Heart, Share2, Package, Truck, Shield, User } from "lucide-react"
 import { doc, getDoc, collection, query, where, onSnapshot, limit } from "firebase/firestore"
@@ -24,6 +25,10 @@ import { trackProductView } from "@/lib/tracking"
 import { defaultSelection, calculateSalePrice } from "@/lib/product-pricing"
 import { categoryPath } from "@/lib/seo"
 import { recordEcommerce } from "@/lib/google-analytics"
+
+// The below-fold WebGL story is optional; pricing and shopping HTML remain
+// server rendered while its animation code loads in a separate client chunk.
+const PerfumeScrollStory = dynamic<PerfumeScrollStoryProps>(() => import("@/components/perfume-scroll-story"), { ssr: false })
 
 export default function ProductPageClient({ initialProduct, initialSize, initialRelatedProducts = [] }: { initialProduct: Product; initialSize?: number; initialRelatedProducts?: Product[] }) {
   const id = initialProduct.id
