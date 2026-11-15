@@ -1,5 +1,7 @@
 # BY12 SEO maintenance — 16 November 2026
 
+This is the earlier return-policy maintenance record. The subsequent deployed keyword/content release and current verification results are documented in [SEO-KEYWORD-RESEARCH.md](SEO-KEYWORD-RESEARCH.md).
+
 The organization JSON-LD now references the existing public `/refund` page with `hasMerchantReturnPolicy` / `merchantReturnLink`. This follows Google's organization-level [return-policy option B](https://developers.google.com/search/docs/appearance/structured-data/return-policy). Linking the full policy preserves its eligibility conditions, exclusions and return-shipping exceptions. No shipping price, unconditional refund, free return or delivery-time claim was added to product offers.
 
 Organization and WebSite descriptions now use the site's established inspired-perfume positioning instead of the older authentic-luxury wording. The changes affect structured data only: page design, public policy text, prices, stock, cart and checkout behavior are unchanged.

@@ -1,5 +1,7 @@
 # BY12 SEO phase 2 — buying content and internal links
 
+Historical implementation record: the local-only statements below describe this batch before publication. Deployment is recorded in [SEO-RELEASE.md](SEO-RELEASE.md); the later product-copy, comparison-guide and winter-article release is recorded in [SEO-KEYWORD-RESEARCH.md](SEO-KEYWORD-RESEARCH.md).
+
 Local implementation dated 15 November 2026. No deployment, catalog-document edits, customer-data changes or security-rule releases are part of this batch.
 
 ## Content delivered
