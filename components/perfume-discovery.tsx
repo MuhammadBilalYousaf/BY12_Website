@@ -21,7 +21,7 @@ export default function PerfumeDiscovery({ products }: { products: Product[] }) 
                 <Sparkles size={14} aria-hidden="true" /> The BY12 scent guide
               </span>
               <h2 id="perfume-discovery-heading" className="mb-5 text-4xl font-bold leading-[1.12] tracking-tight text-white sm:text-5xl">
-                Find your
+                Find your{" "}
                 <span className="block bg-gradient-to-r from-accent via-yellow-400 to-accent bg-clip-text text-transparent">signature scent.</span>
               </h2>
               <p className="max-w-md text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
