@@ -64,6 +64,8 @@ The submission returned HTML instead of the expected JSON confirmation, so accep
 
 ## Google reporting and Windsor.ai setup
 
+Latest owner evidence: a subsequent screenshot shows the correct Search Console domain property selected and the green “ChatGPT can now see your data” confirmation. The setup step is complete in the provider UI. Two fresh connector checks then returned transport/send errors from the ChatGPT plugin gateway, not account/permission errors. Do not repeat the earlier reconnection request. The earlier missing-connector observations below remain historical; actual report metrics are still unavailable until transport succeeds.
+
 The owner's explicitly invoked [Windsor.ai get-started skill](<C:/Users/SST/.codex/plugins/cache/openai-curated-remote/windsor-ai/4.2.4/skills/get-started/SKILL.md>) was followed. Windsor returned the existing GA4 connector `googleanalytics4`, selected property/account `512618134`, display name `by12-b3606`; this matches the previously verified BY12 property. Field discovery completed before report queries.
 
 | Read | Selected fields | Returned result |
