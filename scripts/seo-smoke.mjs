@@ -155,9 +155,8 @@ await check('Guide has Article markup and real product links in server HTML', as
 await check('Homepage connects brand perfumes and the comparison guide in server HTML', async () => {
   const { html } = await get('/')
   const content = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-  const text = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
-  assert.ok(text.includes('Coffeeno perfume by BY12'))
-  assert.ok(text.includes('Ravla perfume by BY12'))
+  assert.ok(content.includes('aria-label="Explore Coffeeno perfume by BY12"'))
+  assert.ok(content.includes('aria-label="Explore Ravla perfume by BY12"'))
   assert.ok(content.includes('href="/guides/coffeeno-vs-ravla"'))
 })
 await check('Comparison guide includes actual size and matching tester links', async () => {
